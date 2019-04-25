@@ -81,6 +81,7 @@ class StandardProcessor implements IProcessor {
      * @param RunningJob $runningJob
      *
      * @return mixed
+     * @throws FailException
      */
     private function createTask(RunningJob $runningJob) {
         $job = $runningJob->getJob();
@@ -107,7 +108,7 @@ class StandardProcessor implements IProcessor {
                 'exception' => $e,
                 'payload' => $job->toArray()
             ]);
-            throw new \RuntimeException($message, Exceptions::CODE_RETRY);
+            throw new FailException($message, 0, $e);
         }
     }
 
