@@ -89,7 +89,6 @@ class StaticPoolMaintainer implements IProcessMaintainer {
                     'runtime_info' => $runtimeInfo
                 ]);
                 $image->unregister();
-                $image->clearRuntimeInfo();
                 WorkerMaintenance::clearBuffer($this->pool, $image);
                 continue;
             }

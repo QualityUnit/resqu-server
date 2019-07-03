@@ -140,7 +140,6 @@ LUA;
                     'runtime_info' => $runtimeInfo
                 ]);
                 $image->unregister();
-                $image->clearRuntimeInfo();
                 WorkerMaintenance::clearBuffer($this->pool, $image);
                 continue;
             }

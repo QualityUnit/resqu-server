@@ -9,6 +9,16 @@ use Resque\Resque;
 
 class WorkerImage extends AbstractProcessImage {
 
+    /**
+     * KEYS [ WORKER SET KEY, WORKER RUNTIME KEY]
+     * ARGS [ WORKER ID ]
+     */
+    const SCRIPT_UNREGISTER = /** @lang Lua */
+        <<<LUA
+redis.call('DEL', KEYS[2])
+redis.call('SREM', KEYS[1], ARGS[1])
+LUA;
+
     /** @var string */
     private $poolName;
     /** @var string */
@@ -95,6 +105,15 @@ class WorkerImage extends AbstractProcessImage {
      * @throws \Resque\RedisError
      */
     public function unregister() {
-        Resque::redis()->sRem(Key::localPoolProcesses($this->poolName), $this->getId());
+        Resque::redis()->eval(
+            self::SCRIPT_UNREGISTER,
+            [
+                Key::localPoolProcesses($this->poolName),
+                Key::workerRuntimeInfo($this->getId())
+            ],
+            [
+                $this->getId()
+            ]
+        );
     }
 }
