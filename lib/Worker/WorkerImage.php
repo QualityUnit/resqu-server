@@ -16,7 +16,7 @@ class WorkerImage extends AbstractProcessImage {
     const SCRIPT_UNREGISTER = /** @lang Lua */
         <<<LUA
 redis.call('DEL', KEYS[2])
-redis.call('SREM', KEYS[1], ARGS[1])
+redis.call('SREM', KEYS[1], ARGV[1])
 LUA;
 
     /** @var string */
