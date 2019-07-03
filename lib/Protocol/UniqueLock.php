@@ -146,6 +146,12 @@ LUA;
         }
 
         if ((int)$state->startTime < (time() - 3600)) {
+            Log::warning('Attempting to clear old lock.', [
+                'unique_id' => $uniqueId,
+                'lock_start' => $state->startTime,
+                'lock_name' => $state->stateName,
+                'lock_age' => time() - $state->startTime
+            ]);
             self::clearStuckLock($uniqueId);
         }
     }
@@ -166,7 +172,7 @@ LUA;
 
             $runningUniqueId = WorkerImage::load($workerId)->getRuntimeInfo()->uniqueId;
             if ($uniqueId === $runningUniqueId) {
-                Log::warning('Long running unique job', [
+                Log::warning('Unable to clear old lock - worker runtime info still exists', [
                     'unique_id' => $uniqueId
                 ]);
 
@@ -174,9 +180,6 @@ LUA;
             }
         }
 
-        Log::warning('Clearing stale unique key.', [
-            'unique_id' => $uniqueId
-        ]);
         self::clearLock($uniqueId);
     }
 
