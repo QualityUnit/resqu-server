@@ -23,15 +23,7 @@ class QueueLock {
 
         $result = Resque::redis()->hSetNx(Key::queueLocks(), $job->getUniqueId(), self::makeState($queuedJob));
 
-        if ($result === 1) {
-            return true;
-        }
-
-        if ($result === 0) {
-            return false;
-        }
-
-        throw new RedisError('Unrecognized answer from redis: "' . var_export($result, true) . '"');
+        return (bool) $result;
     }
 
     /**
@@ -47,15 +39,7 @@ class QueueLock {
 
         $result = Resque::redis()->hDel(Key::queueLocks(), $uniqueId);
 
-        if ($result === 1) {
-            return true;
-        }
-
-        if ($result === 0) {
-            return false;
-        }
-
-        throw new RedisError('Unrecognized answer from redis: "' . var_export($result, true) . '"');
+        return (bool) $result;
     }
 
     /**
@@ -74,7 +58,7 @@ class QueueLock {
 
         $result = Resque::redis()->hGet(Key::queueLocks(), $uniqueId);
 
-        if ($result === false) {
+        if (!$result) {
             return;
         }
 
