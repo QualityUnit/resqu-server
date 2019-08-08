@@ -2,13 +2,17 @@
 
 namespace Resque\Pool;
 
+use Resque;
 use Resque\Job\JobParseException;
 use Resque\Job\QueuedJob;
 use Resque\Key;
 use Resque\Log;
 use Resque\Process\AbstractProcess;
+use Resque\Protocol\QueueLock;
 use Resque\Queue\Queue;
 use Resque\Stats\AllocatorStats;
+use Resque\Stats\JobStats;
+use function is_array;
 
 class JobAllocatorProcess extends AbstractProcess implements IAllocatorProcess {
 
@@ -32,7 +36,7 @@ class JobAllocatorProcess extends AbstractProcess implements IAllocatorProcess {
     /**
      * main loop
      *
-     * @throws \Resque\RedisError
+     * @throws Resque\RedisError
      */
     public function doWork() {
         Log::debug('Retrieving job from unassigned jobs');
@@ -54,17 +58,21 @@ class JobAllocatorProcess extends AbstractProcess implements IAllocatorProcess {
     }
 
     /**
-     * @throws \Resque\RedisError
+     * @throws Resque\RedisError
      */
     public function revertBuffer() {
         Log::info("Reverting allocator buffer {$this->buffer->getKey()}");
-        while (null !== $this->buffer->popInto($this->unassignedQueue))  {
-            // NOOP
+        while (null !== ($payload = $this->buffer->peek())) {
+            $queuedJob = $this->queuedJobFromPayload($payload);
+
+            QueueLock::unlockFor($queuedJob);
+
+            $this->buffer->popInto($this->unassignedQueue);
         }
     }
 
     /**
-     * @throws \Resque\RedisError
+     * @throws Resque\RedisError
      */
     protected function prepareWork() {
         while (null !== ($payload = $this->buffer->peek())) {
@@ -72,36 +80,51 @@ class JobAllocatorProcess extends AbstractProcess implements IAllocatorProcess {
         }
     }
 
-    /**
-     * @param $payload
-     *
-     * @throws \Resque\RedisError if processing failed
-     */
-    private function processPayload($payload) {
+    private function queuedJobFromPayload($payload) {
         $decoded = json_decode($payload, true);
-        if (!\is_array($decoded)) {
+        if (!is_array($decoded)) {
             Log::critical('Failed to process unassigned job.', [
                 'raw_payload' => $payload
             ]);
 
-            $this->buffer->remove($payload);
-
-            return;
+            return null;
         }
 
         try {
-            $queuedJob = QueuedJob::fromArray($decoded);
+            return QueuedJob::fromArray($decoded);
         } catch (JobParseException $e) {
             Log::error('Failed to create job from payload.', [
                 'exception' => $e,
                 'payload' => $payload
             ]);
+        }
 
+        return null;
+    }
+
+    /**
+     * @param $payload
+     *
+     * @throws Resque\RedisError if processing failed
+     */
+    private function processPayload($payload) {
+        $queuedJob = $this->queuedJobFromPayload($payload);
+        if ($queuedJob === null) {
             $this->buffer->remove($payload);
 
             return;
         }
+
         Log::debug("Found job {$queuedJob->getJob()->getName()}");
+
+        if (!QueueLock::lock($queuedJob)) {
+
+            $this->buffer->remove($payload);
+
+            JobStats::getInstance()->reportUniqueDiscarded();
+
+            return;
+        }
 
         $enqueuedPayload = StaticPool::assignJob($queuedJob, $this->buffer);
 

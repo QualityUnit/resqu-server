@@ -52,19 +52,6 @@ class Key {
         return 'delayed_queue_schedule';
     }
 
-    public static function jobAllocationFailures() {
-        return self::of('job', 'allocation_failures');
-    }
-
-    /**
-     * @param string $id
-     *
-     * @return string
-     */
-    public static function jobStatus($id) {
-        return self::of('job', $id, 'status');
-    }
-
     /**
      * @param string $allocatorNumber
      *
@@ -88,13 +75,6 @@ class Key {
      */
     public static function localPoolProcesses($poolName) {
         return self::of('process', GlobalConfig::getInstance()->getNodeId(), 'pool', $poolName);
-    }
-
-    /**
-     * @return string
-     */
-    public static function localSchedulerPid() {
-        return self::of('scheduler_pid', GlobalConfig::getInstance()->getNodeId());
     }
 
     /**
@@ -126,64 +106,24 @@ class Key {
         return self::of('plan_schedule', $timestamp);
     }
 
-    /**
-     * @param string $name
-     *
-     * @return string
-     */
-    public static function queue($name) {
-        return self::of('queue', $name);
-    }
-
-    /**
-     * @param string $queue
-     *
-     * @return string
-     */
-    public static function queueLock($queue) {
-        return self::of('queuedata', $queue, 'lock');
-    }
-
-    /**
-     * @return string
-     */
-    public static function queues() {
-        return 'queues';
-    }
-
     public static function staticPoolQueue($poolName) {
         return self::of('static', 'queue', $poolName);
-    }
-
-    /**
-     * @param string $stat
-     *
-     * @return string
-     */
-    public static function statsGlobal($stat) {
-        return self::of('stat', $stat);
-    }
-
-    /**
-     * @param string $queue
-     * @param string $stat
-     *
-     * @return string
-     */
-    public static function statsQueue($queue, $stat) {
-        return self::of('queuestat', GlobalConfig::getInstance()->getNodeId(), $stat, $queue);
     }
 
     public static function unassigned() {
         return self::of('unassigned');
     }
 
-    public static function uniqueDeferred($uniqueId) {
+    public static function runLockDeferred($uniqueId) {
         return self::of('unique', $uniqueId, 'deferred');
     }
 
-    public static function uniqueState($uniqueId) {
+    public static function runLockState($uniqueId) {
         return self::of('unique', $uniqueId, 'state');
+    }
+
+    public static function queueLocks() {
+        return self::of('unique', 'queue_locks');
     }
 
     /**
@@ -202,13 +142,6 @@ class Key {
      */
     public static function workerRuntimeInfo($workerId) {
         return self::of('worker', $workerId, 'runtime');
-    }
-
-    /**
-     * @return string
-     */
-    public static function workers() {
-        return self::of('workers');
     }
 
     private static function of(...$parts) {

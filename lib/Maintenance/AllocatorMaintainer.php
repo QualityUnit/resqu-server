@@ -109,7 +109,7 @@ class AllocatorMaintainer implements IProcessMaintainer {
      *
      * @return IAllocatorProcess|null
      */
-    private function createProcessObject(AllocatorImage $image) {
+    private function createAllocatorProcess(AllocatorImage $image) {
         if ($this->isJobAllocator($image)) {
             return new JobAllocatorProcess($image->getCode());
         }
@@ -141,7 +141,7 @@ class AllocatorMaintainer implements IProcessMaintainer {
 
             $image = AllocatorImage::create($codePrefix . getmypid());
             Log::info("Creating allocator {$image->getId()}");
-            $allocator = $this->createProcessObject($image);
+            $allocator = $this->createAllocatorProcess($image);
             if ($allocator === null) {
                 exit(0);
             }
@@ -174,10 +174,10 @@ class AllocatorMaintainer implements IProcessMaintainer {
      * @throws \Resque\RedisError
      */
     private function removeAllocatorRecord(AllocatorImage $image) {
-        $processObject = $this->createProcessObject($image);
+        $allocatorProcess = $this->createAllocatorProcess($image);
 
-        if ($processObject !== null) {
-            $processObject->revertBuffer();
+        if ($allocatorProcess !== null) {
+            $allocatorProcess->revertBuffer();
         }
 
         $image->unregister();

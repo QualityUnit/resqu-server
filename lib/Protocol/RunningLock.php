@@ -8,16 +8,16 @@ use Resque\RedisError;
 use Resque\Resque;
 use Resque\Worker\WorkerImage;
 
-class UniqueLock {
+class RunningLock {
 
     /**
      * KEYS [ STATE KEY, SOURCE KEY, DEFERRAL KEY ]
-     * ARGS [ RUNNING STATE, IS DEFERRABLE ]
+     * ARGS [ STATE DATA, IS DEFERRABLE ]
      * RETURN 1 -> job was locked and is ready to be processed
      *        2 -> job was popped from source key and deferred
      *        3 -> job was popped from source and discarded
      */
-    const SCRIPT_LOCK_UNIQUE = /** @lang Lua */
+    const SCRIPT_LOCK_RUNNING = /** @lang Lua */
         <<<LUA
 if not redis.call('GET', KEYS[1]) then
     redis.call('SET', KEYS[1], ARGV[1])
@@ -33,12 +33,11 @@ LUA;
 
     /**
      * KEYS [ STATE KEY, DEFERRED KEY ]
-     * ARGS [ RUNNING STATE PREFIX ]
      * RETURN payload -> correct state, deferred exists
      *        false -> correct state, deferred does not exist
      *        1 -> unique key does not exist
      */
-    const SCRIPT_UNLOCK_UNIQUE = /** @lang Lua */
+    const SCRIPT_UNLOCK_RUNNING = /** @lang Lua */
         <<<LUA
 if not redis.call('GET', KEYS[1]) then return 1 end
 local deferred = redis.call('GET', KEYS[2])
@@ -46,7 +45,7 @@ redis.call('DEL', KEYS[1], KEYS[2])
 return deferred
 LUA;
 
-    const STATE_RUNNING = 'running';
+    const STATE_NAME = 'running';
 
     /**
      * @param string $uniqueId
@@ -58,7 +57,7 @@ LUA;
             return;
         }
 
-        $toDelete = [Key::uniqueState($uniqueId), Key::uniqueDeferred($uniqueId)];
+        $toDelete = [Key::runLockState($uniqueId), Key::runLockDeferred($uniqueId)];
         if (Resque::redis()->del($toDelete) === 0) {
             Log::warning('No unique keys to delete.', [
                 'unique_id' => $uniqueId
@@ -76,21 +75,21 @@ LUA;
      * @throws RedisError
      */
     public static function lock($uniqueId, $sourceKey, $deferrable) {
-        if (!$uniqueId) {
+        if (empty($uniqueId)) {
             throw new \InvalidArgumentException('Invalid unique ID.');
         }
 
         self::clearLockIfOld($uniqueId);
 
         $result = Resque::redis()->eval(
-            self::SCRIPT_LOCK_UNIQUE,
+            self::SCRIPT_LOCK_RUNNING,
             [
-                Key::uniqueState($uniqueId),
+                Key::runLockState($uniqueId),
                 $sourceKey,
-                Key::uniqueDeferred($uniqueId)
+                Key::runLockDeferred($uniqueId)
             ],
             [
-                self::makeState(self::STATE_RUNNING),
+                self::makeState(),
                 $deferrable
             ]
         );
@@ -116,13 +115,10 @@ LUA;
         }
 
         $result = Resque::redis()->eval(
-            self::SCRIPT_UNLOCK_UNIQUE,
+            self::SCRIPT_UNLOCK_RUNNING,
             [
-                Key::uniqueState($uniqueId),
-                Key::uniqueDeferred($uniqueId)
-            ],
-            [
-                self::STATE_RUNNING
+                Key::runLockState($uniqueId),
+                Key::runLockDeferred($uniqueId)
             ]
         );
 
@@ -190,7 +186,7 @@ LUA;
      * @throws RedisError
      */
     private static function getState($uniqueId) {
-        $stateString = Resque::redis()->get(Key::uniqueState($uniqueId));
+        $stateString = Resque::redis()->get(Key::runLockState($uniqueId));
         if (!$stateString) {
             return null;
         }
@@ -198,7 +194,7 @@ LUA;
         return UniqueState::fromString($stateString);
     }
 
-    private static function makeState(string $stateName) {
-        return (new UniqueState($stateName))->toString();
+    private static function makeState() {
+        return (new UniqueState(self::STATE_NAME))->toString();
     }
 }

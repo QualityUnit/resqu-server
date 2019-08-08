@@ -13,7 +13,8 @@ use Resque\Process\AbstractProcess;
 use Resque\Protocol\DeferredException;
 use Resque\Protocol\DiscardedException;
 use Resque\Protocol\Job;
-use Resque\Protocol\UniqueLock;
+use Resque\Protocol\QueueLock;
+use Resque\Protocol\RunningLock;
 use Resque\Stats\JobStats;
 
 class WorkerProcess extends AbstractProcess {
@@ -49,7 +50,7 @@ class WorkerProcess extends AbstractProcess {
 
         Log::debug("Found job {$queuedJob->getId()}. Processing.");
 
-        if (!$this->lockJob($queuedJob->getJob())) {
+        if (!$this->acquireLock($queuedJob->getJob())) {
             return;
         }
 
@@ -103,7 +104,7 @@ class WorkerProcess extends AbstractProcess {
         $this->getImage()->clearRuntimeInfo();
     }
 
-    private function lockJob(Job $job) {
+    private function acquireLock(Job $job) {
         $uid = $job->getUid();
 
         if ($uid === null) {
@@ -111,16 +112,20 @@ class WorkerProcess extends AbstractProcess {
         }
 
         try {
-            UniqueLock::lock(
+            RunningLock::lock(
                 $uid->getId(),
                 $this->source->getBuffer()->getKey(),
                 $uid->isDeferrable()
             );
 
+            QueueLock::unlock($uid->getId());
+
             return true;
         } catch (DeferredException $e) {
+            QueueLock::unlock($uid->getId());
             JobStats::getInstance()->reportUniqueDeferred();
         } catch (DiscardedException $e) {
+            QueueLock::unlock($uid->getId());
             JobStats::getInstance()->reportUniqueDiscarded();
         }
 

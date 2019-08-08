@@ -5,7 +5,8 @@ namespace Resque\Maintenance;
 use Resque\Job\QueuedJob;
 use Resque\Log;
 use Resque\Pool\IPool;
-use Resque\Protocol\UniqueLock;
+use Resque\Protocol\QueueLock;
+use Resque\Protocol\RunningLock;
 use Resque\Worker\WorkerImage;
 
 class WorkerMaintenance {
@@ -35,8 +36,9 @@ class WorkerMaintenance {
 
             $uniqueId = $queuedJob->getJob()->getUniqueId();
             if ($uniqueId !== null) {
-                UniqueLock::clearLock($uniqueId);
+                RunningLock::clearLock($uniqueId);
             }
+            QueueLock::unlockFor($queuedJob);
         }
     }
 }

@@ -11,7 +11,7 @@ class UniqueState {
 
     /**
      * @param string $stateName
-     * @param float $startTime
+     * @param int $startTime
      */
     public function __construct($stateName, $startTime = null) {
         $this->stateName = $stateName;
@@ -19,7 +19,15 @@ class UniqueState {
     }
 
     public static function fromString(string $stateString) {
-        return new self(...explode('-', $stateString));
+        $parts = explode('-', $stateString);
+
+        if (count($parts) < 2) {
+            return new self($stateString);
+        }
+
+        $time = (int) array_pop($parts);
+
+        return new self(implode('-', $parts), $time);
     }
 
     public function toString() {

@@ -4,13 +4,10 @@ namespace Resque\Maintenance;
 
 use Resque\Config\ConfigException;
 use Resque\Config\GlobalConfig;
-use Resque\Job\IJobSource;
-use Resque\Job\JobParseException;
 use Resque\Key;
 use Resque\Log;
 use Resque\Pool\StaticPool;
 use Resque\Process;
-use Resque\Protocol\UniqueLock;
 use Resque\RedisError;
 use Resque\Resque;
 use Resque\SignalHandler;
