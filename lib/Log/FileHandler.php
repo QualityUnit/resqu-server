@@ -24,7 +24,7 @@ class FileHandler extends AbstractProcessingHandler {
     /**
      * {@inheritdoc}
      */
-    protected function write(array $record) {
+    protected function write(array $record): void {
         $this->createDir();
         file_put_contents($this->url, (string)$record['formatted'], FILE_APPEND);
     }

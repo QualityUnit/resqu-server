@@ -83,8 +83,7 @@ class Log {
             $config->getApplicationName(),
             $config->getSystemName(),
             $config->getExtraPrefix(),
-            $config->getContextPrefix(),
-            $config->getVersion()
+            $config->getContextPrefix()
         );
 
         $handler = new FileHandler($config->getPath(), $config->getLevel());

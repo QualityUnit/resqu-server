@@ -204,7 +204,7 @@ class UniqueLockTest extends RedisTestCase {
         RunningLock::unlock('not-exists');
     }
 
-    protected function setUp() {
+    protected function setUp(): void {
         parent::setUp();
         $this->addKeys([
             Key::runLockState(self::U_LOCKED) => $this->state(RunningLock::STATE_NAME, time()),

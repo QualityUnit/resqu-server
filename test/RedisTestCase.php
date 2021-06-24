@@ -8,7 +8,7 @@ use Resque\Resque;
 
 class RedisTestCase extends TestCase {
 
-    protected function setUp() {
+    protected function setUp(): void {
         parent::setUp();
         Resque::setBackend('localhost:6379');
         Resque::redis()->flushDb();

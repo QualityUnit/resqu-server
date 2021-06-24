@@ -105,3 +105,4 @@ composer.phar
 /testscripts/redis.php
 /testscripts/fix_enqueued.php
 /testscripts/fix_clear_unique-v2.php
+.phpunit.result.cache
