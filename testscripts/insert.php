@@ -1,12 +1,11 @@
 <?php
+ini_set('display_errors', true);
+error_reporting(E_ALL);
 
 use Resqu\Client\JobDescriptor;
 
-require_once '/home/dmolnar/work/qu/php-resqueue-serial/scripts/bootstrap.php';
+require_once __DIR__ . '/../scripts/bootstrap.php';
 require_once 'testjobs.php';
-
-ini_set('display_errors', true);
-error_reporting(E_ALL);
 
 
 class Descriptor extends JobDescriptor {
