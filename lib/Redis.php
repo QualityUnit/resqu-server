@@ -2,7 +2,7 @@
 
 namespace Resque;
 
-use Credis_Client;
+use Resque\Libs\Colinmollenhour\Credis\Client as Credis_Client;
 use CredisException;
 
 /**
