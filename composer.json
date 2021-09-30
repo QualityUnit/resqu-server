@@ -7,7 +7,6 @@
         "ext-pcntl": "*",
         "ext-posix": "*",
         "ext-json": "*",
-        "symfony/yaml": "^5.3",
         "monolog/monolog": "^2.2",
         "qualityunit/statsd-client": "^1"
     },

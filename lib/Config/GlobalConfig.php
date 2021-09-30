@@ -4,10 +4,10 @@
 namespace Resque\Config;
 
 
+use Resque\Libs\Symfony\Yaml\Exception\ParseException;
+use Resque\Libs\Symfony\Yaml\Yaml;
 use Resque\Log;
 use Resque\Redis;
-use Symfony\Component\Yaml\Exception\ParseException;
-use Symfony\Component\Yaml\Yaml;
 
 class GlobalConfig {
 
