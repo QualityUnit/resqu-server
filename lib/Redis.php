@@ -3,7 +3,7 @@
 namespace Resque;
 
 use Resque\Libs\Colinmollenhour\Credis\Client as Credis_Client;
-use CredisException;
+use Resque\Libs\Colinmollenhour\Credis\CredisException;
 
 /**
  * Wrap Credis to add namespace support and various helper methods.
