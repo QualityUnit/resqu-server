@@ -7,7 +7,6 @@
         "ext-pcntl": "*",
         "ext-posix": "*",
         "ext-json": "*",
-        "monolog/monolog": "^2.2",
         "qualityunit/statsd-client": "^1"
     },
     "require-dev": {

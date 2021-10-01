@@ -2,8 +2,8 @@
 
 namespace Resque\Log;
 
-use Monolog\Handler\AbstractProcessingHandler;
-use Monolog\Logger;
+use Resque\Libs\Monolog\Handler\AbstractProcessingHandler;
+use Resque\Libs\Monolog\Logger;
 
 class FileHandler extends AbstractProcessingHandler {
 
