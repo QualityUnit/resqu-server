@@ -4,6 +4,7 @@ namespace Resque\Libs\Colinmollenhour\Credis;
 
 use Exception;
 use Redis;
+use RedisException;
 
 /**
  * Credis_Client (a fork of Redisent)
