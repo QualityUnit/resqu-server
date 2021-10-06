@@ -6,9 +6,9 @@ namespace Resque;
 use Resque\Libs\Monolog\Formatter\LogstashFormatter;
 use Resque\Libs\Monolog\Logger;
 use Resque\Libs\Monolog\Processor\PsrLogMessageProcessor;
-use Psr\Log\AbstractLogger;
-use Psr\Log\LoggerInterface;
 use Resque\Config\LogConfig;
+use Resque\Libs\Psr\Log\AbstractLogger;
+use Resque\Libs\Psr\Log\LoggerInterface;
 use Resque\Log\FileHandler;
 
 class Log {
