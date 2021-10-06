@@ -15,7 +15,7 @@ use DateTimeZone;
 use Resque\Libs\Monolog\Handler\HandlerInterface;
 use Resque\Libs\Psr\Log\InvalidArgumentException;
 use Resque\Libs\Psr\Log\LoggerInterface;
-use Stringable;
+use Resque\Libs\Polyfill\Php80\Resources\Stubs\Stringable;
 use Throwable;
 
 /**

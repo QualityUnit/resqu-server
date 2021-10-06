@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Resque\Libs\Monolog\Polyfill;
+namespace Resque\Libs\Polyfill\Php80;
 
 /**
  * @author Ion Bazan <ion.bazan@gmail.com>
