@@ -11,8 +11,9 @@
 
 namespace Resque\Libs\Monolog\Processor;
 
-
+use Resque\Libs\Monolog\DateTimeImmutable;
 use Resque\Libs\Monolog\Utils;
+
 /**
  * Processes a record's message according to PSR-3 rules
  * It replaces {foo} with the value from $context['foo']
@@ -58,7 +59,7 @@ class PsrLogMessageProcessor implements ProcessorInterface
             if (is_null($val) || is_scalar($val) || (is_object($val) && method_exists($val, "__toString"))) {
                 $replacements[$placeholder] = $val;
             } elseif ($val instanceof \DateTimeInterface) {
-                if (!$this->dateFormat && $val instanceof \Monolog\DateTimeImmutable) {
+                if (!$this->dateFormat && $val instanceof DateTimeImmutable) {
                     // handle monolog dates using __toString if no specific dateFormat was asked for
                     // so that it follows the useMicroseconds flag
                     $replacements[$placeholder] = (string) $val;

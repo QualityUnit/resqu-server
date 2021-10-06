@@ -11,8 +11,9 @@
 
 namespace Resque\Libs\Symfony\Yaml;
 
+use Resque\Libs\Symfony\Yaml\Tag\TaggedValue;
 
-use Resque\Libs\Symfony\Yaml\Tag\TaggedValue;/**
+/**
  * Dumper dumps PHP variables to YAML strings.
  *
  * @author Fabien Potencier <fabien@symfony.com>

@@ -6,7 +6,10 @@
         "php": ">=7.4.0",
         "ext-pcntl": "*",
         "ext-posix": "*",
+        "ext-ctype": "*",
         "ext-json": "*",
+        "ext-soap": "*",
+        "ext-mbstring": "*",
         "qualityunit/statsd-client": "^1"
     },
     "require-dev": {

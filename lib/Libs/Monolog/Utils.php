@@ -122,7 +122,7 @@ final class Utils
         if (is_string($data)) {
             self::detectAndCleanUtf8($data);
         } elseif (is_array($data)) {
-            array_walk_recursive($data, array('Monolog\Utils', 'detectAndCleanUtf8'));
+            array_walk_recursive($data, array(__CLASS__, 'detectAndCleanUtf8'));
         } else {
             self::throwEncodeError($code, $data);
         }

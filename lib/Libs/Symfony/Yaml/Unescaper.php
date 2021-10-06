@@ -11,8 +11,9 @@
 
 namespace Resque\Libs\Symfony\Yaml;
 
+use Resque\Libs\Symfony\Yaml\Exception\ParseException;
 
-use Resque\Libs\Symfony\Yaml\Exception\ParseException;/**
+/**
  * Unescaper encapsulates unescaping rules for single and double-quoted
  * YAML strings.
  *
