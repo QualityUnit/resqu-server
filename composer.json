@@ -25,6 +25,7 @@
         "psr-4": {
             "Resque\\": "lib",
             "Test\\": "test"
-        }
+        },
+        "files": ["lib/Libs/Symfony/Yaml/function.php"]
     }
 }
