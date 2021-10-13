@@ -26,6 +26,9 @@
             "Resque\\": "lib",
             "Test\\": "test"
         },
-        "files": ["lib/Libs/Symfony/Yaml/function.php"]
+        "files": [
+            "lib/Libs/Symfony/Yaml/function.php",
+            "lib/Libs/Polyfill/bootstrap.php"
+        ]
     }
 }
