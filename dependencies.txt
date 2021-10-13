@@ -1,0 +1,6 @@
+Baked dependencies:
+
+"colinmollenhour/credis": v1.12.1
+"symfony/yaml": v5.3.3
+"monolog/monolog": v2.3.4
+"psr/log": v1.1.4

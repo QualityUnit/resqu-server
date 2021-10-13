@@ -2,7 +2,7 @@
 
 namespace Resque\Config;
 
-use Psr\Log\LogLevel;
+use Resque\Libs\Psr\Log\LogLevel;
 use Resque\Log;
 
 class LogConfig {
