@@ -242,7 +242,7 @@ class StandardProcessor implements IProcessor {
             $includePath = readlink($includePath);
         }
 
-        include_once $includePath . DIRECTORY_SEPARATOR . $jobPath;
+        require_once $includePath . DIRECTORY_SEPARATOR . $jobPath;
     }
 
     private function reportSuccess(RunningJob $runningJob) {
