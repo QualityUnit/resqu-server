@@ -6,20 +6,21 @@ namespace Resque;
 
 class SignalHandler {
 
-    /** @var callable[] */
-    private $handlers = [];
-    /** @var self */
-    private static $instance;
+    /**
+     * @var callable[]
+     */
+    private array $handlers = [];
+    private static self $instance;
 
     private function __construct() {
     }
 
-    public static function dispatch() {
+    public static function dispatch(): void {
         pcntl_signal_dispatch();
     }
 
-    public static function instance() {
-        if (self::$instance === null) {
+    public static function instance(): self {
+        if (!isset(self::$instance)) {
             self::$instance = new self();
         }
 
@@ -30,7 +31,7 @@ class SignalHandler {
         return $this->handlers[$signal] ?? SIG_DFL;
     }
 
-    public function register($signal, $handler) {
+    public function register($signal, $handler): self {
         if (function_exists('pcntl_signal')) {
             pcntl_signal($signal, $handler);
             $this->handlers[$signal] = $handler;
@@ -39,7 +40,7 @@ class SignalHandler {
         return $this;
     }
 
-    public function unregister($signal) {
+    public function unregister($signal): self {
         unset($this->handlers[$signal]);
         if (function_exists('pcntl_signal')) {
             pcntl_signal($signal, SIG_DFL);
@@ -48,7 +49,7 @@ class SignalHandler {
         return $this;
     }
 
-    public function unregisterAll() {
+    public function unregisterAll(): self {
         foreach ($this->handlers as $signal => $handler) {
             $this->unregister($signal);
         }

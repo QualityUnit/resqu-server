@@ -21,17 +21,14 @@ class StandardProcessor implements IProcessor {
     const CHILD_SIGNAL_TIMEOUT = 5;
     const SIGNAL_SUCCESS = SIGUSR2;
 
-    /** @var SignalTracker */
-    private $successTracker;
+    private SignalTracker $successTracker;
 
     public function __construct() {
         $this->successTracker = new SignalTracker(self::SIGNAL_SUCCESS);
     }
 
     /**
-     * @param RunningJob $runningJob
-     *
-     * @throws \Resque\RedisError
+     * @throws RedisError
      */
     public function process(RunningJob $runningJob) {
         $this->successTracker->register();
@@ -40,7 +37,7 @@ class StandardProcessor implements IProcessor {
         if ($pid === 0) {
             // CHILD PROCESS START
             try {
-                $workerPid = $runningJob->getWorker()->getImage()->getPid();
+                $workerPid = (int)$runningJob->getWorker()->getImage()->getPid();
                 Log::setPrefix("$workerPid-std-proc-" . posix_getpid());
                 Process::setTitlePrefix("$workerPid-std-proc");
                 Process::setTitle("Processing job {$runningJob->getName()}");
@@ -78,9 +75,6 @@ class StandardProcessor implements IProcessor {
     }
 
     /**
-     * @param RunningJob $runningJob
-     *
-     * @return mixed
      * @throws FailException
      */
     private function createTask(RunningJob $runningJob) {
@@ -168,11 +162,9 @@ class StandardProcessor implements IProcessor {
     }
 
     /**
-     * @param RunningJob $runningJob
-     *
-     * @throws \Resque\RedisError
+     * @throws RedisError
      */
-    private function handleChild(RunningJob $runningJob) {
+    private function handleChild(RunningJob $runningJob): void {
         $job = $runningJob->getJob();
         try {
             Log::debug("Creating task {$job->getClass()}");
@@ -202,12 +194,9 @@ class StandardProcessor implements IProcessor {
     }
 
     /**
-     * @param RunningJob $runningJob
-     * @param \Exception $e
-     *
-     * @throws \Resque\RedisError
+     * @throws RedisError
      */
-    private function handleException(RunningJob $runningJob, \Exception $e) {
+    private function handleException(RunningJob $runningJob, \Exception $e): void {
         if (\get_class($e) === \RuntimeException::class) {
             switch ($e->getCode()) {
                 case Exceptions::CODE_RETRY:
@@ -229,7 +218,7 @@ class StandardProcessor implements IProcessor {
         $runningJob->fail($e);
     }
 
-    private function includePath(Job $job) {
+    private function includePath(Job $job): void {
         $jobPath = ltrim(trim($job->getIncludePath()), DIRECTORY_SEPARATOR);
         if (!$jobPath) {
             return;
@@ -245,7 +234,7 @@ class StandardProcessor implements IProcessor {
         require_once $includePath . DIRECTORY_SEPARATOR . $jobPath;
     }
 
-    private function reportSuccess(RunningJob $runningJob) {
+    private function reportSuccess(RunningJob $runningJob): void {
         try {
             $runningJob->success();
         } catch (\Exception $e) {
@@ -257,13 +246,9 @@ class StandardProcessor implements IProcessor {
     }
 
     /**
-     * @param RunningJob $runningJob
-     * @param int $delay
-     *
-     * @throws \Resque\RedisError
-     * @internal param $delay
+     * @throws RedisError
      */
-    private function rescheduleJob(RunningJob $runningJob, $delay) {
+    private function rescheduleJob(RunningJob $runningJob, int $delay): void {
         try {
             RunningLock::clearLock($runningJob->getJob()->getUniqueId());
             if ($delay > 0) {
@@ -280,7 +265,7 @@ class StandardProcessor implements IProcessor {
         }
     }
 
-    private function setupEnvironment(Job $job) {
+    private function setupEnvironment(Job $job): void {
         $env = $job->getEnvironment();
         if (\is_array($env)) {
             foreach ($env as $key => $value) {
@@ -295,7 +280,7 @@ class StandardProcessor implements IProcessor {
      * @return int
      * @throws \Exception
      */
-    private function waitForChildProcess($pid) {
+    private function waitForChildProcess($pid): int {
         $status = "Forked $pid at " . strftime('%F %T');
         Process::setTitle($status);
         Log::info($status);

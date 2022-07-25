@@ -5,7 +5,7 @@ namespace Resque\Worker;
 
 
 use Resque\Job\IJobSource;
-use Resque\Job\Processor\StandardProcessor;
+use Resque\Job\Processor\HttpProcessor;
 use Resque\Job\QueuedJob;
 use Resque\Job\RunningJob;
 use Resque\Log;
@@ -15,14 +15,12 @@ use Resque\Protocol\DiscardedException;
 use Resque\Protocol\Job;
 use Resque\Protocol\QueueLock;
 use Resque\Protocol\RunningLock;
+use Resque\RedisError;
 use Resque\Stats\JobStats;
 
 class WorkerProcess extends AbstractProcess {
-
-    /** @var IJobSource */
-    private $source;
-    /** @var StandardProcessor */
-    private $processor;
+    private IJobSource $source;
+    private HttpProcessor $processor;
 
     public function __construct(IJobSource $source, WorkerImage $image) {
         parent::__construct("w-{$image->getPoolName()}-{$image->getCode()}", $image);
@@ -30,18 +28,15 @@ class WorkerProcess extends AbstractProcess {
         $this->processor = new StandardProcessor();
     }
 
-    /**
-     * @return WorkerImage
-     */
-    public function getImage() {
+    public function getImage(): WorkerImage {
         /** @noinspection PhpIncompatibleReturnTypeInspection */
         return parent::getImage();
     }
 
     /**
-     * @throws \Resque\RedisError
+     * @throws RedisError
      */
-    protected function doWork() {
+    protected function doWork(): void {
         $queuedJob = $this->source->bufferNextJob();
 
         if ($queuedJob === null) {
@@ -71,15 +66,11 @@ class WorkerProcess extends AbstractProcess {
         $this->finishWorkOn($queuedJob);
     }
 
-    protected function prepareWork() {
+    protected function prepareWork(): void {
         // NOOP
     }
 
-    /**
-     * @param QueuedJob $expected
-     * @param QueuedJob $actual
-     */
-    private function assertJobsEqual(QueuedJob $expected, QueuedJob $actual) {
+    private function assertJobsEqual(QueuedJob $expected, QueuedJob $actual): void {
         if ($expected->getId() === $actual->getId()) {
             return;
         }
@@ -133,12 +124,9 @@ class WorkerProcess extends AbstractProcess {
     }
 
     /**
-     * @param QueuedJob $queuedJob
-     *
-     * @return RunningJob
-     * @throws \Resque\RedisError
+     * @throws RedisError
      */
-    private function startWorkOn(QueuedJob $queuedJob) {
+    private function startWorkOn(QueuedJob $queuedJob): RunningJob {
         $this->getImage()->setRuntimeInfo(
             microtime(true),
             $queuedJob->getJob()->getName(),
