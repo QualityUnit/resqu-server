@@ -17,6 +17,7 @@ use Resque\RedisError;
 use Resque\Resque;
 
 class StandardProcessor implements IProcessor {
+    public const PROCESSOR_NAME = 'Standard';
 
     const CHILD_SIGNAL_TIMEOUT = 5;
     const SIGNAL_SUCCESS = SIGUSR2;
@@ -50,6 +51,7 @@ class StandardProcessor implements IProcessor {
                     Process::signal(self::SIGNAL_SUCCESS, $workerPid ?? 0);
                 } catch (\Throwable $r) {
                     Log::critical('Failed to properly handle job failure.', [
+                        Log::CTX_PROCESSOR => self::PROCESSOR_NAME,
                         'exception' => $r,
                         'payload' => $runningJob->getJob()->toArray()
                     ]);
@@ -62,6 +64,7 @@ class StandardProcessor implements IProcessor {
                 $exitCode = $this->waitForChildProcess($pid);
                 if ($exitCode !== 0) {
                     Log::warning("Job process signalled success, but exited with code $exitCode.", [
+                        Log::CTX_PROCESSOR => self::PROCESSOR_NAME,
                         'payload' => $runningJob->getJob()->toArray()
                     ]);
                 }
@@ -99,6 +102,7 @@ class StandardProcessor implements IProcessor {
         } catch (\Exception $e) {
             $message = 'Failed to create a task instance';
             Log::error("$message from payload.", [
+                Log::CTX_PROCESSOR => self::PROCESSOR_NAME,
                 'exception' => $e,
                 'payload' => $job->toArray()
             ]);
@@ -113,6 +117,7 @@ class StandardProcessor implements IProcessor {
      */
     private function enqueueDeferred(Job $deferredJob) {
         Log::debug("Enqueuing deferred job {$deferredJob->getName()}", [
+            Log::CTX_PROCESSOR => self::PROCESSOR_NAME,
             'payload' => $deferredJob->toArray()
         ]);
 
@@ -140,6 +145,7 @@ class StandardProcessor implements IProcessor {
             $payload = RunningLock::unlock($job->getUniqueId());
         } catch (UniqueLockMissingException $e) {
             Log::error('No unique key found on unique job finalization.', [
+                Log::CTX_PROCESSOR => self::PROCESSOR_NAME,
                 'payload' => $job->toArray()
             ]);
             return null;
@@ -152,6 +158,7 @@ class StandardProcessor implements IProcessor {
         $deferred = json_decode($payload, true);
         if (!\is_array($deferred)) {
             Log::error('Unexpected deferred payload.', [
+                Log::CTX_PROCESSOR => self::PROCESSOR_NAME,
                 'raw_payload' => $payload
             ]);
 
@@ -167,9 +174,13 @@ class StandardProcessor implements IProcessor {
     private function handleChild(RunningJob $runningJob): void {
         $job = $runningJob->getJob();
         try {
-            Log::debug("Creating task {$job->getClass()}");
+            Log::debug("Creating task {$job->getClass()}", [
+                Log::CTX_PROCESSOR => self::PROCESSOR_NAME,
+            ]);
             $task = $this->createTask($runningJob);
-            Log::debug("Performing task {$job->getClass()}");
+            Log::debug("Performing task {$job->getClass()}", [
+                Log::CTX_PROCESSOR => self::PROCESSOR_NAME,
+            ]);
 
             $task->perform();
         } catch (\Exception $e) {
@@ -187,6 +198,7 @@ class StandardProcessor implements IProcessor {
             }
         } catch (JobParseException $e) {
             Log::error('Failed to enqueue deferred job.', [
+                Log::CTX_PROCESSOR => self::PROCESSOR_NAME,
                 'exception' => $e,
                 'payload' => $e->getPayload()
             ]);
@@ -206,7 +218,9 @@ class StandardProcessor implements IProcessor {
                     return;
                 case Exceptions::CODE_RESCHEDULE:
                     $delay = json_decode($e->getMessage(), true)['delay'] ?? 0;
-                    Log::debug("Rescheduling task {$runningJob->getName()} in {$delay}s");
+                    Log::debug("Rescheduling task {$runningJob->getName()} in {$delay}s", [
+                        Log::CTX_PROCESSOR => self::PROCESSOR_NAME,
+                    ]);
                     $this->rescheduleJob($runningJob, $delay);
 
                     return;
@@ -239,6 +253,7 @@ class StandardProcessor implements IProcessor {
             $runningJob->success();
         } catch (\Exception $e) {
             Log::error('Failed to report success of a job.', [
+                Log::CTX_PROCESSOR => self::PROCESSOR_NAME,
                 'exception' => $e,
                 'payload' => $runningJob->getJob()->toArray()
             ]);
@@ -258,6 +273,7 @@ class StandardProcessor implements IProcessor {
             }
         } catch (\Exception $e) {
             Log::critical('Failed to reschedule a job.', [
+                Log::CTX_PROCESSOR => self::PROCESSOR_NAME,
                 'exception' => $e,
                 'payload' => $runningJob->getJob()->toArray()
             ]);

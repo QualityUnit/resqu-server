@@ -4,8 +4,10 @@
 namespace Resque\Worker;
 
 
+use Resque\Config\GlobalConfig;
 use Resque\Job\IJobSource;
 use Resque\Job\Processor\HttpProcessor;
+use Resque\Job\Processor\StandardProcessor;
 use Resque\Job\QueuedJob;
 use Resque\Job\RunningJob;
 use Resque\Log;
@@ -20,12 +22,19 @@ use Resque\Stats\JobStats;
 
 class WorkerProcess extends AbstractProcess {
     private IJobSource $source;
-    private HttpProcessor $processor;
+    private HttpProcessor $httpProcessor;
+    private StandardProcessor $standardProcessor;
 
     public function __construct(IJobSource $source, WorkerImage $image) {
         parent::__construct("w-{$image->getPoolName()}-{$image->getCode()}", $image);
         $this->source = $source;
-        $this->processor = new StandardProcessor();
+        $this->standardProcessor = new StandardProcessor();
+
+        $this->reload();
+    }
+
+    protected function reload(): void {
+        $this->httpProcessor = new HttpProcessor(GlobalConfig::getInstance()->getHttpProcessor());
     }
 
     public function getImage(): WorkerImage {
@@ -51,13 +60,34 @@ class WorkerProcess extends AbstractProcess {
 
         $runningJob = $this->startWorkOn($queuedJob);
 
+        $processorName = StandardProcessor::PROCESSOR_NAME;
+        if (empty($runningJob->getJob()->getIncludePath())) {
+            $processorName = HttpProcessor::PROCESSOR_NAME;
+        }
+
         try {
-            $this->processor->process($runningJob);
-            Log::debug("Processing of job {$runningJob->getId()} has finished", [
+            Log::notice('Processing the job.', [
+                Log::CTX_PROCESSOR => $processorName,
+                'jobId' => $runningJob->getId(),
+                'jobName' => $runningJob->getName()
+            ]);
+
+            if ($processorName === HttpProcessor::PROCESSOR_NAME) {
+                $this->httpProcessor->process($runningJob);
+            } else {
+                $this->standardProcessor->process($runningJob);
+            }
+            Log::debug("Processing of the job has finished", [
+                Log::CTX_PROCESSOR => $processorName,
+                'jobId' => $runningJob->getId(),
+                'jobName' => $runningJob->getName(),
                 'payload' => $runningJob->getJob()->toString()
             ]);
         } catch (\Exception $e) {
             Log::critical('Unexpected error occurred during execution of a job.', [
+                Log::CTX_PROCESSOR => $processorName,
+                'jobId' => $runningJob->getId(),
+                'jobName' => $runningJob->getName(),
                 'exception' => $e,
                 'payload' => $runningJob->getJob()->toArray()
             ]);

@@ -22,6 +22,7 @@ class Log {
     const LINE_FORMAT = "[%datetime%] %channel%.%level_name%: %message% %context.exception%\n";
     const NOTICE = 'notice';
     const WARNING = 'warning';
+    public const CTX_PROCESSOR = 'processor';
 
     /** @var Log */
     private static $instance;

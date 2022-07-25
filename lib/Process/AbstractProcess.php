@@ -57,8 +57,12 @@ abstract class AbstractProcess implements IStandaloneProcess {
 
         StatsD::initialize(GlobalConfig::getInstance()->getStatsConfig());
 
+        $this->reload();
+
         Log::notice('Reloaded');
     }
+
+    protected function reload(): void {}
 
     final public function shutDown(): void {
         $this->isShutDown = true;

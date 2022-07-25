@@ -10,7 +10,9 @@
         "ext-json": "*",
         "ext-soap": "*",
         "ext-mbstring": "*",
-        "qualityunit/statsd-client": "^1"
+        "qualityunit/statsd-client": "^1",
+        "guzzlehttp/guzzle": "^7.2",
+        "firebase/php-jwt": "^6.3"
     },
     "require-dev": {
         "roave/security-advisories": "dev-master",
