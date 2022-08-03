@@ -19,14 +19,14 @@ use Resque\SignalHandler;
 use Resque\StatsD;
 
 class InitProcess {
+    /**
+     * @var IProcessMaintainer[]
+     */
+    private array $maintainers = [];
+    private bool $stopping = false;
+    private bool $reloaded = false;
 
-    /** @var IProcessMaintainer[] */
-    private $maintainers = [];
-
-    private $stopping = false;
-    private $reloaded = false;
-
-    public function maintain() {
+    public function maintain(): void {
         Process::setTitle('maintaining');
         while (true) {
             sleep(5);
@@ -38,7 +38,7 @@ class InitProcess {
         }
     }
 
-    public function recover() {
+    public function recover(): void {
         foreach ($this->maintainers as $maintainer) {
             $className = (new ReflectionClass($maintainer))->getShortName();
             Log::info("=== Maintenance started ($className)");
@@ -46,7 +46,7 @@ class InitProcess {
         }
     }
 
-    public function reload() {
+    public function reload(): void {
         Log::debug('Reloading configuration');
         GlobalConfig::reload();
         StatsD::initialize(GlobalConfig::getInstance()->getStatsConfig());
@@ -61,20 +61,20 @@ class InitProcess {
     /**
      * send TERM to all workers and serial workers
      */
-    public function shutdown() {
+    public function shutdown(): void {
         $this->stopping = true;
 
         $this->signalProcesses(SIGTERM, 'TERM');
     }
 
-    public function start() {
+    public function start(): void {
         Process::setTitlePrefix('init');
         Process::setTitle('starting');
         $this->initialize();
         $this->recover();
     }
 
-    private function initialize() {
+    private function initialize(): void {
         Resque::setBackend(GlobalConfig::getInstance()->getBackend());
 
         StatsD::initialize(GlobalConfig::getInstance()->getStatsConfig());
@@ -85,7 +85,7 @@ class InitProcess {
         $this->registerSigHandlers();
     }
 
-    private function initializeMaintainers() {
+    private function initializeMaintainers(): void {
         unset($this->maintainers);
         $this->maintainers = [];
 
@@ -114,7 +114,7 @@ class InitProcess {
         $this->maintainers[] = new SchedulerMaintainer();
     }
 
-    private function registerSigHandlers() {
+    private function registerSigHandlers(): void {
         SignalHandler::instance()->unregisterAll()
             ->register(SIGTERM, [$this, 'shutdown'])
             ->register(SIGINT, [$this, 'shutdown'])
@@ -130,7 +130,7 @@ class InitProcess {
         Log::debug('Registered signals');
     }
 
-    private function signalProcesses($signal, $signalName) {
+    private function signalProcesses($signal, $signalName): void {
         foreach ($this->maintainers as $maintainer) {
             foreach ($maintainer->getLocalProcesses() as $localProcess) {
                 Log::debug("Signalling $signalName to {$localProcess->getId()}");

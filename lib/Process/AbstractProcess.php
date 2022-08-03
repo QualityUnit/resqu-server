@@ -10,30 +10,20 @@ use Resque\StatsD;
 
 abstract class AbstractProcess implements IStandaloneProcess {
 
-    /** @var bool */
-    private $isShutDown = false;
-    /** @var IProcessImage */
-    private $image;
-    /** @var string */
-    private $title;
+    private bool $isShutDown = false;
+    private IProcessImage $image;
+    private string $title;
 
-    /**
-     * @param string $title
-     * @param IProcessImage $image
-     */
-    public function __construct($title, IProcessImage $image) {
+    public function __construct(string $title, IProcessImage $image) {
         $this->image = $image;
         $this->title = $title;
     }
 
-    /**
-     * @return IProcessImage
-     */
-    public function getImage() {
+    public function getImage(): IProcessImage {
         return $this->image;
     }
 
-    final public function initLogger() {
+    final public function initLogger(): void {
         Log::initialize(GlobalConfig::getInstance()->getLogConfig());
         Log::setPrefix(getmypid() . '-' . $this->title);
     }
@@ -60,7 +50,7 @@ abstract class AbstractProcess implements IStandaloneProcess {
         Log::info('Initialization complete.');
     }
 
-    public function reloadAll() {
+    public function reloadAll(): void {
         Log::notice('Reloading');
         GlobalConfig::reload();
         $this->initLogger();
@@ -70,12 +60,12 @@ abstract class AbstractProcess implements IStandaloneProcess {
         Log::notice('Reloaded');
     }
 
-    final public function shutDown() {
+    final public function shutDown(): void {
         $this->isShutDown = true;
         Log::info('Shutting down');
     }
 
-    final public function unregister() {
+    final public function unregister(): void {
         Process::setTitle('Shutting down');
 
         $this->getImage()->unregister();
@@ -89,7 +79,7 @@ abstract class AbstractProcess implements IStandaloneProcess {
      * Every $interval (seconds), the scheduled queue will be checked for jobs
      * that should be pushed to Resque\Resque.
      */
-    public function work() {
+    public function work(): void {
         Process::setTitle('Working');
         Log::info('Starting work');
 
@@ -105,10 +95,7 @@ abstract class AbstractProcess implements IStandaloneProcess {
 
     abstract protected function prepareWork();
 
-    /**
-     * @return bool
-     */
-    private function canRun() {
+    private function canRun(): bool {
         SignalHandler::dispatch();
 
         return !$this->isShutDown;
