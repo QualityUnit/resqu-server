@@ -41,6 +41,7 @@ class GlobalConfig {
 
     /** @var string */
     private $configPath;
+    private ?HttpProcessorConfig $httpProcessor;
 
     /**
      * @return GlobalConfig
@@ -98,6 +99,13 @@ class GlobalConfig {
         if ($taskIncludePath) {
             $self->taskIncludePath = $taskIncludePath;
         }
+
+        $httpProcessor = $data['http_processor'] ?? null;
+        if (empty($httpProcessor)) {
+            throw new \RuntimeException('http_processor config missing.');
+        }
+        $self->httpProcessor = new HttpProcessorConfig($httpProcessor);
+
         $failRetries = $data['fail_retries'] ?? -1;
         if ($failRetries >= 0) {
             $self->maxTaskFails = (int)$failRetries;
@@ -212,6 +220,10 @@ class GlobalConfig {
         if (!empty($intersection)) {
             throw new ConfigException('All pool names must be unique.');
         }
+    }
+
+    public function getHttpProcessor(): ?HttpProcessorConfig {
+        return $this->httpProcessor;
     }
 
 }
