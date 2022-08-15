@@ -62,9 +62,7 @@ class HttpProcessor implements IProcessor {
             ]);
 
             $headers = [
-                //TODO https://github.com/QualityUnit/resqu-server/issues/15
-                //'Authorization' => "Bearer {$this->createBearerToken($job)}",
-                'La-Authorization' => "Bearer {$this->createBearerToken($job)}"
+                'Authorization' => "Bearer {$this->createBearerToken($job)}"
             ];
 
             if (!empty($this->config->jobRunnerHost)) {
