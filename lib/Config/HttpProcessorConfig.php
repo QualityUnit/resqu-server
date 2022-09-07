@@ -41,14 +41,22 @@ class HttpProcessorConfig {
 
     private function loadJwtPrivateKeys(array $keys): array {
         $ret = [];
-        foreach ($keys as $keyId => $key) {
-            $key = trim($key);
-            if (empty($key)) {
+        foreach ($keys as $keyId => $keyFilePath) {
+            $keyFilePath = trim($keyFilePath);
+            if (empty($keyFilePath)) {
                 throw new \InvalidArgumentException("jwt_private_keys[$keyId] is invalid RS256 private key.");
             }
-            $ret[$keyId] = $key;
+            $ret[$keyId] = $this->loadJwtPrivateKeyFromFile($keyId, $keyFilePath);
         }
 
         return $ret;
+    }
+
+    private function loadJwtPrivateKeyFromFile(string $keyId, string $keyFilePath): string {
+        $content = @file_get_contents($keyFilePath);
+        if ($content === false) {
+            throw new \InvalidArgumentException("jwt_private_keys[$keyId] file failed to be loaded: $keyFilePath");
+        }
+        return $content;
     }
 }
