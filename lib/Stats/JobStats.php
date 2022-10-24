@@ -35,8 +35,9 @@ class JobStats {
      * @param RunningJob $job
      */
     public function reportJobProcessing(RunningJob $job) {
-        Stats::global()->forSource($job->getJob()->getSourceId())
-            ->increment("job.{$job->getName()}.processed");
+        $stats = Stats::global()->forSource($job->getJob()->getSourceId());
+        $stats->increment("job.{$job->getName()}.processed");
+        $stats->increment("job_processor.{$job->getProcessorName()}");
     }
 
     /**

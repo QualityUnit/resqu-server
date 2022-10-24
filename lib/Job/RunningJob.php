@@ -3,6 +3,8 @@
 namespace Resque\Job;
 
 use Resque\Config\GlobalConfig;
+use Resque\Job\Processor\HttpProcessor;
+use Resque\Job\Processor\StandardProcessor;
 use Resque\Log;
 use Resque\Protocol\Job;
 use Resque\Resque;
@@ -29,6 +31,13 @@ class RunningJob {
         $this->worker = $worker;
         $this->job = $queuedJob->getJob();
         $this->startTime = microtime(true);
+    }
+
+    public function getProcessorName(): string {
+        if (empty($this->getJob()->getIncludePath())) {
+            return HttpProcessor::PROCESSOR_NAME;
+        }
+        return StandardProcessor::PROCESSOR_NAME;
     }
 
     public function fail(\Throwable $t) {

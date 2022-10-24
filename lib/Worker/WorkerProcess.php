@@ -60,10 +60,7 @@ class WorkerProcess extends AbstractProcess {
 
         $runningJob = $this->startWorkOn($queuedJob);
 
-        $processorName = StandardProcessor::PROCESSOR_NAME;
-        if (empty($runningJob->getJob()->getIncludePath())) {
-            $processorName = HttpProcessor::PROCESSOR_NAME;
-        }
+        $processorName = $runningJob->getProcessorName();
 
         try {
             Log::notice('Processing the job.', [
