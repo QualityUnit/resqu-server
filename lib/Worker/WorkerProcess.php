@@ -63,8 +63,9 @@ class WorkerProcess extends AbstractProcess {
         $processorName = $runningJob->getProcessorName();
 
         try {
-            Log::notice('Processing the job.', [
+            Log::debug('Processing the job.', [
                 Log::CTX_PROCESSOR => $processorName,
+                Log::CTX_ACCOUNT_ID => $runningJob->getJob()->getSourceId(),
                 'jobId' => $runningJob->getId(),
                 'jobName' => $runningJob->getName()
             ]);
@@ -76,6 +77,7 @@ class WorkerProcess extends AbstractProcess {
             }
             Log::debug("Processing of the job has finished", [
                 Log::CTX_PROCESSOR => $processorName,
+                Log::CTX_ACCOUNT_ID => $runningJob->getJob()->getSourceId(),
                 'jobId' => $runningJob->getId(),
                 'jobName' => $runningJob->getName(),
                 'payload' => $runningJob->getJob()->toString()
@@ -83,6 +85,7 @@ class WorkerProcess extends AbstractProcess {
         } catch (\Exception $e) {
             Log::critical('Unexpected error occurred during execution of a job.', [
                 Log::CTX_PROCESSOR => $processorName,
+                Log::CTX_ACCOUNT_ID => $runningJob->getJob()->getSourceId(),
                 'jobId' => $runningJob->getId(),
                 'jobName' => $runningJob->getName(),
                 'exception' => $e,

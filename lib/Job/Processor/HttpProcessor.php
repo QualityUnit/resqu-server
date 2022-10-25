@@ -36,6 +36,7 @@ class HttpProcessor implements IProcessor {
             } catch (\Throwable $r) {
                 Log::critical('Failed to properly handle job failure.', [
                     Log::CTX_PROCESSOR => self::PROCESSOR_NAME,
+                    Log::CTX_ACCOUNT_ID => $runningJob->getJob()->getSourceId(),
                     'exception' => $r,
                     'payload' => $runningJob->getJob()->toArray()
                 ]);
@@ -54,6 +55,7 @@ class HttpProcessor implements IProcessor {
 
             Log::debug('HTTP job request.', [
                 Log::CTX_PROCESSOR => self::PROCESSOR_NAME,
+                Log::CTX_ACCOUNT_ID => $runningJob->getJob()->getSourceId(),
                 'jobId' => $job->getUniqueId(),
                 'request' => [
                     'url' => $url,
@@ -81,6 +83,7 @@ class HttpProcessor implements IProcessor {
 
             Log::debug('HTTP job success response.', [
                 Log::CTX_PROCESSOR => self::PROCESSOR_NAME,
+                Log::CTX_ACCOUNT_ID => $job->getSourceId(),
                 'jobId' => $job->getUniqueId(),
                 'response' => [
                     'body' => $responseBody
@@ -91,6 +94,7 @@ class HttpProcessor implements IProcessor {
             if ($protocolResponse === null) {
                 Log::warning('Invalid HTTP job runner response, but marking job as successful anyway.', [
                     Log::CTX_PROCESSOR => self::PROCESSOR_NAME,
+                    Log::CTX_ACCOUNT_ID => $runningJob->getJob()->getSourceId(),
                     'response' => [
                         'body' => $responseBody
                     ]
@@ -101,6 +105,7 @@ class HttpProcessor implements IProcessor {
             } else if ($protocolResponse->isReschedule()) {
                 Log::info('Rescheduling job.', [
                     Log::CTX_PROCESSOR => self::PROCESSOR_NAME,
+                    Log::CTX_ACCOUNT_ID => $runningJob->getJob()->getSourceId(),
                     'jobId' => $job->getUniqueId(),
                     'jobName' => $runningJob->getName(),
                     'rescheduleDelay' => $protocolResponse->getRescheduleDelay()
@@ -112,6 +117,7 @@ class HttpProcessor implements IProcessor {
         } catch (BadResponseException $e) {
             Log::error('HTTP job runner error response.', [
                 Log::CTX_PROCESSOR => self::PROCESSOR_NAME,
+                Log::CTX_ACCOUNT_ID => $runningJob->getJob()->getSourceId(),
                 'jobId' => $job->getUniqueId(),
                 'jobName' => $job->getName(),
                 'response' => [
@@ -149,6 +155,7 @@ class HttpProcessor implements IProcessor {
     private function enqueueDeferred(Job $deferredJob): void {
         Log::info("Enqueuing deferred job", [
             Log::CTX_PROCESSOR => self::PROCESSOR_NAME,
+            Log::CTX_ACCOUNT_ID => $deferredJob->getSourceId(),
             'jobId' => $deferredJob->getUniqueId(),
             'jobName' => $deferredJob->getName()
         ]);
@@ -174,6 +181,7 @@ class HttpProcessor implements IProcessor {
         } catch (UniqueLockMissingException $e) {
             Log::error('No unique key found on unique job finalization.', [
                 Log::CTX_PROCESSOR => self::PROCESSOR_NAME,
+                Log::CTX_ACCOUNT_ID => $job->getSourceId(),
                 'payload' => $job->toArray()
             ]);
             return null;
@@ -187,6 +195,7 @@ class HttpProcessor implements IProcessor {
         if (!\is_array($deferred)) {
             Log::error('Unexpected deferred payload.', [
                 Log::CTX_PROCESSOR => self::PROCESSOR_NAME,
+                Log::CTX_ACCOUNT_ID => $job->getSourceId(),
                 'raw_payload' => $payload
             ]);
 
@@ -207,6 +216,7 @@ class HttpProcessor implements IProcessor {
         } catch (\Exception $e) {
             Log::error('Failed to report success of a job.', [
                 Log::CTX_PROCESSOR => self::PROCESSOR_NAME,
+                Log::CTX_ACCOUNT_ID => $runningJob->getJob()->getSourceId(),
                 'exception' => $e,
                 'payload' => $runningJob->getJob()->toArray()
             ]);
@@ -220,6 +230,7 @@ class HttpProcessor implements IProcessor {
         } catch (JobParseException $e) {
             Log::error('Failed to enqueue deferred job.', [
                 Log::CTX_PROCESSOR => self::PROCESSOR_NAME,
+                Log::CTX_ACCOUNT_ID => $runningJob->getJob()->getSourceId(),
                 'exception' => $e,
                 'payload' => $e->getPayload()
             ]);
@@ -240,6 +251,7 @@ class HttpProcessor implements IProcessor {
         } catch (\Exception $e) {
             Log::critical('Failed to reschedule a job.', [
                 Log::CTX_PROCESSOR => self::PROCESSOR_NAME,
+                Log::CTX_ACCOUNT_ID => $runningJob->getJob()->getSourceId(),
                 'exception' => $e,
                 'payload' => $runningJob->getJob()->toArray()
             ]);
