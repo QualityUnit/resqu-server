@@ -23,6 +23,7 @@ class Log {
     const NOTICE = 'notice';
     const WARNING = 'warning';
     public const CTX_PROCESSOR = 'processor';
+    public const CTX_ACCOUNT_ID = 'accountid';
 
     /** @var Log */
     private static $instance;
