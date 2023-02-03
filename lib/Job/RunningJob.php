@@ -117,6 +117,27 @@ class RunningJob {
         $this->reportRetry($e, $newJobId);
     }
 
+    /**
+     * @param \Exception $e
+     *
+     * @throws \Resque\RedisError
+     */
+    public function retryWithBackoff(\Exception $e) {
+        if ($this->job->getFailCount() >= (GlobalConfig::getInstance()->getMaxTaskFails() - 1)) {
+            $this->fail($e);
+
+            return;
+        }
+
+        $this->job->incFailCount();
+
+        $delay = 2 ** $this->job->getFailCount();
+        Resque::delayedEnqueue($delay, $this->job);
+
+        Log::notice("Job retry scheduled with backoff delay: {$delay}s", $this->createFailContext($e, $this->getJob()->getUid()));
+        JobStats::getInstance()->reportRetry($this);
+    }
+
     public function success() {
         $this->reportSuccess();
     }
