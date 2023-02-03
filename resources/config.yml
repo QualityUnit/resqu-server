@@ -19,7 +19,7 @@ log:
 
 statsd:
     # default = localhost
-    host: "localhost"
+    host: "statsd"
     # default = 8125
     port: 8125
     # socket connection timeout in seconds, default = 3
@@ -34,14 +34,19 @@ redis:
 # {sourceId} will be replaced with source ID provided by job
 task_include_path: "/var/www/html/LiveAgent/server"
 
+fail_retries: 5
+
 http_processor:
     # {sourceId} will be replaced with source ID provided by job
-    job_runner_endpoint_url: "http://php/LiveAgent/server/public/resque/job_runner/run"
-    job_runner_host: "hosted.la.localhost"
+    job_runner_endpoint_url: "http://resque-server-job-processor/LiveAgent/server/public/resque/job_runner/run"
+    job_runner_host: "{sourceId}.app-q.la.localhost"
     jwt_private_key_in_use: dev.resque-server.la
     jwt_private_keys:
         dev.resque-server.la: "resources/resque-server-key"
-    #connect_timeout: 0
+    # HTTP job runner server should be reachable immediately, if not, there is some infra issue.
+    connect_timeout: 1
+    # These timeouts should be controlled from HTTP job runner server.
+    # Resque server should wait until the response is returned indefinitely.
     #timeout: 0
     #read_timeout: 0
 

@@ -5,6 +5,7 @@ namespace Resque\Job\Processor;
 use Firebase\JWT\JWT;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\BadResponseException;
+use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\RequestOptions;
 use Resque\Protocol\HttpJobResponse;
 use Resque\Config\HttpProcessorConfig;
@@ -53,7 +54,7 @@ class HttpProcessor implements IProcessor {
             $url = str_replace('{sourceId}', $job->getSourceId(), $this->config->jobRunnerEndpointUrl);
             $body = $job->toArray();
 
-            Log::debug('HTTP job request.', [
+            Log::info('HTTP job request.', [
                 Log::CTX_PROCESSOR => self::PROCESSOR_NAME,
                 Log::CTX_ACCOUNT_ID => $runningJob->getJob()->getSourceId(),
                 'jobId' => $job->getUniqueId(),
@@ -115,7 +116,7 @@ class HttpProcessor implements IProcessor {
                 $this->reportSuccess($runningJob);
             }
         } catch (BadResponseException $e) {
-            Log::error('HTTP job runner error response.', [
+            Log::error('HTTP job runner request: BadResponseException.', [
                 Log::CTX_PROCESSOR => self::PROCESSOR_NAME,
                 Log::CTX_ACCOUNT_ID => $runningJob->getJob()->getSourceId(),
                 'jobId' => $job->getUniqueId(),
@@ -127,7 +128,17 @@ class HttpProcessor implements IProcessor {
             ]);
 
             RunningLock::clearLock($runningJob->getJob()->getUniqueId());
-            $runningJob->fail($e);
+            $runningJob->retryWithBackoff($e);
+        } catch (ConnectException $e) {
+            Log::error('HTTP job runner request: ConnectionException.', [
+                Log::CTX_PROCESSOR => self::PROCESSOR_NAME,
+                Log::CTX_ACCOUNT_ID => $runningJob->getJob()->getSourceId(),
+                'jobId' => $job->getUniqueId(),
+                'jobName' => $job->getName()
+            ]);
+
+            RunningLock::clearLock($runningJob->getJob()->getUniqueId());
+            $runningJob->retryWithBackoff($e);
         }
     }
 
