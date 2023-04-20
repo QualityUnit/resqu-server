@@ -418,7 +418,7 @@ class Redis {
         ]);
         $this->close();
 
-        usleep($wait * 1000000);
+        usleep((int)($wait * 1000000));
 
         try {
             return $this->driver->__call($name, $args);
