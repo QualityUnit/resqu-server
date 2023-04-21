@@ -8,7 +8,6 @@
         "ext-posix": "*",
         "ext-ctype": "*",
         "ext-json": "*",
-        "ext-soap": "*",
         "ext-mbstring": "*",
         "qualityunit/statsd-client": "^1",
         "guzzlehttp/guzzle": "^7.2",
