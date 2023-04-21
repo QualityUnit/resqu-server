@@ -309,7 +309,7 @@ class StandardProcessor implements IProcessor {
      * @throws \Exception
      */
     private function waitForChildProcess($pid): int {
-        $status = "Forked $pid at " . strftime('%F %T');
+        $status = "Forked $pid at " . date('Y-m-d H:i:s');
         Process::setTitle($status);
         Log::info($status);
 

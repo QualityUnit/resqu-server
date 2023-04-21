@@ -150,7 +150,7 @@ class RunningJob {
      */
     private function createFailContext(\Throwable $t, $retryText = 'no retry') {
         return [
-            'start_time' => date('Y-m-d\TH:i:s.uP', $this->startTime),
+            'start_time' => date('Y-m-d\TH:i:s.uP', (int)$this->startTime),
             'payload' => $this->job->toArray(),
             'exception' => $t,
             'retried_by' => $retryText
@@ -184,6 +184,6 @@ class RunningJob {
             $duration = 0;
         }
 
-        JobStats::getInstance()->reportDuration($this, $duration);
+        JobStats::getInstance()->reportDuration($this, (int)$duration);
     }
 }
