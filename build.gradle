@@ -1,4 +1,4 @@
-project.version '5.6.0'
+project.version '5.6.1'
 
 ext {
 	distributionDir = file('dist')
