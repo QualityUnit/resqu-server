@@ -1,9 +1,7 @@
-project.version '5.6.1'
+project.version '5.6.2'
 
-ext {
-	distributionDir = file('dist')
-	buildDir = file('build')
-}
+def distributionDir = file('dist')
+buildDir = file('build')
 
 task installDev(type: Exec) {
 	group 'resque-serial dev'
@@ -48,7 +46,7 @@ task copyDist(type: Copy) {
 	include 'composer.json'
 	include 'composer.lock'
 
-	into project.distributionDir
+	into distributionDir
 }
 
 task installDist(type: Exec) {
@@ -56,7 +54,7 @@ task installDist(type: Exec) {
 	description 'Installs dependencies into distribution folder.'
 	dependsOn 'copyDist'
 
-	workingDir project.distributionDir
+	workingDir distributionDir
 
 	def command = []
 	if (System.getProperty('os.name').toLowerCase().contains('windows')) {
@@ -77,12 +75,12 @@ task dist(type: Zip) {
 	description 'Packages distribution into an archive'
 	dependsOn 'installDist'
 
-	baseName project.name
-	version project.version
-	destinationDir project.buildDir
+	archiveBaseName = project.name
+	archiveVersion = project.version
+	destinationDirectory = project.buildDir
 
-	from(project.distributionDir) {
-		exclude "$archiveName" // exclude self to prevent endless loop...
+	from(distributionDir) {
+		exclude "$archiveFileName" // exclude self to prevent endless loop...
 		exclude 'composer.json'
 		exclude 'composer.lock'
 	}
