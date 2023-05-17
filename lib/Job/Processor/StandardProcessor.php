@@ -101,7 +101,7 @@ class StandardProcessor implements IProcessor {
             $task->args = $job->getArgs();
 
             return $task;
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $message = 'Failed to create a task instance';
             Log::error("$message from payload.", [
                 Log::CTX_PROCESSOR => self::PROCESSOR_NAME,
