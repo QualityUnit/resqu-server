@@ -15,6 +15,8 @@ use Resque\Protocol\RunningLock;
 use Resque\Protocol\UniqueLockMissingException;
 use Resque\RedisError;
 use Resque\Resque;
+use RuntimeException;
+use function file_exists;
 
 class StandardProcessor implements IProcessor {
     public const PROCESSOR_NAME = 'Standard';
@@ -218,7 +220,7 @@ class StandardProcessor implements IProcessor {
      * @throws RedisError
      */
     private function handleException(RunningJob $runningJob, \Exception $e): void {
-        if (\get_class($e) === \RuntimeException::class) {
+        if (\get_class($e) === RuntimeException::class) {
             switch ($e->getCode()) {
                 case Exceptions::CODE_RETRY:
                     RunningLock::clearLock($runningJob->getJob()->getUniqueId());
@@ -242,6 +244,9 @@ class StandardProcessor implements IProcessor {
         $runningJob->fail($e);
     }
 
+    /**
+     * @throws \Exception
+     */
     private function includePath(Job $job): void {
         $jobPath = ltrim(trim($job->getIncludePath()), DIRECTORY_SEPARATOR);
         if (!$jobPath) {
@@ -255,7 +260,12 @@ class StandardProcessor implements IProcessor {
             $includePath = readlink($includePath);
         }
 
-        require_once $includePath . DIRECTORY_SEPARATOR . $jobPath;
+        $requirePath = $includePath . DIRECTORY_SEPARATOR . $jobPath;
+        if (!file_exists($requirePath)) {
+            throw new RuntimeException("Include path $requirePath does not exist");
+        }
+
+        require_once $requirePath;
     }
 
     private function reportSuccess(RunningJob $runningJob): void {
