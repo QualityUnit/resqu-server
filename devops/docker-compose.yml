@@ -1,0 +1,73 @@
+version: '3.8'
+name: resque
+services:
+  app:
+    build:
+      context: ../
+      dockerfile: devops/containers/app/Dockerfile
+      target: dev
+    # https://github.com/QualityUnit/QuCloud/blob/master/QuSalt/salt/roots/php-resque/conf/resqu.service
+    command: php scripts/startManagers.php /app-config.yml
+    volumes:
+      - ../:/app:ro
+      # App config
+      - ./deploy/containers/app/config/app-config.yml:/app-config.yml:ro
+      - ./deploy/containers/app/secrets/app-secrets:/app-secrets:ro
+      # PHP
+      - ./deploy/containers/app/config/usr--local--etc--php--conf.d--zzz-env.ini:/usr/local/etc/php/conf.d/zzz-env.ini:ro
+    environment:
+      # DEV
+      ELASTIC_APM_ENABLED: 1
+      ELASTIC_APM_SERVER_URL: http://idp-elastic-apm-server:8200
+      ELASTIC_APM_ENVIRONMENT: dev-local
+      ELASTIC_APM_SERVICE_NODE_NAME: local
+      ELASTIC_APM_SERVICE_NAME: resque-app
+      #ELASTIC_APM_SERVICE_VERSION: 0.1
+      ELASTIC_APM_LOG_LEVEL: WARNING
+
+      PHP_IDE_CONFIG: "serverName=resque.la.localhost"
+      #XDEBUG_CONFIG: "mode=debug client_host=host.docker.internal start_with_request=yes log_level=7"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      idp:
+  app-prod:
+    build:
+      context: ../
+      dockerfile: devops/containers/app/Dockerfile
+      target: prod
+    # https://github.com/QualityUnit/QuCloud/blob/master/QuSalt/salt/roots/php-resque/conf/resqu.service
+    command: php scripts/startManagers.php /app-config.yml
+    volumes:
+      # App config
+      - ./deploy/containers/app/config/app-config.yml:/app-config.yml:ro
+      - ./deploy/containers/app/secrets/app-secrets:/app-secrets:ro
+      # PHP
+      - ./deploy/containers/app/config/usr--local--etc--php--conf.d--zzz-env.ini:/usr/local/etc/php/conf.d/zzz-env.ini:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      idp:
+  builder:
+    profiles:
+      - cli
+    build:
+      context: ../
+      dockerfile: devops/containers/app/Dockerfile
+      target: builder
+      args:
+        BUILDER_UID: ${HOST_UID:-1000}
+        BUILDER_GID: ${HOST_GID:-1000}
+    command: sleep infinity
+    user: builder
+    working_dir: /project-root
+    networks:
+      idp:
+    volumes:
+      - ../:/project-root
+      - resque-builder-home:/home/builder
+volumes:
+  resque-builder-home:
+networks:
+  idp:
+    name: idp

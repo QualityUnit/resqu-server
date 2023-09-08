@@ -1,0 +1,81 @@
+# MANDATORY <STRING> instance id /^[a-zA-Z0-9_]+$/ (must be unique for each resque instance)
+node_id: "dev_local"
+
+log:
+  # default = notice
+  level: notice
+  # default = "/var/log/resque-serial.log"
+  path: "php://stdout"
+  # the application that sends the data, used as the "type" field of logstash
+  application_name: "resque-v5"
+  # the system/machine name, used as the "source" field of logstash, defaults to the hostname of the machine
+  system_name: ""
+  # prefix for extra keys inside logstash "fields"
+  extra_prefix: ""
+  # prefix for context keys inside logstash "fields", defaults to "ctxt_"
+  context_prefix: "ctxt_"
+  # the logstash format version to use, defaults to 0
+  logstash_version: 1
+
+statsd:
+  # default = localhost
+  host: "idp-statsd"
+  # default = 8125
+  port: 8125
+  # socket connection timeout in seconds, default = 3
+  connect_timeout: 3
+
+redis:
+  # default = localhost
+  hostname: la-redis
+  # default = 6379
+  port: 6379
+
+# {sourceId} will be replaced with source ID provided by job
+task_include_path: "/app-accounts/{sourceId}"
+
+fail_retries: 5
+
+http_processor:
+  # {sourceId} will be replaced with source ID provided by job
+  job_runner_endpoint_url: "http://idp-ingress/public/resque/job_runner/run"
+  job_runner_host: "{sourceId}.ladesk.com.local.live-agent.net"
+  jwt_private_key_in_use: dev.resque-server.la
+  jwt_private_keys:
+    dev.resque-server.la: "/app-secrets/resque-server-key"
+  # HTTP job runner server should be reachable immediately, if not, there is some infra issue.
+  connect_timeout: 1
+  # These timeouts should be controlled from HTTP job runner server.
+  # Resque server should wait until the response is returned indefinitely.
+  #timeout: 0
+  #read_timeout: 0
+
+allocators:
+  # default = 0
+  job-count: 1
+  # default = 0
+  batch-count: 1
+
+pools:
+  static:
+    static_1:
+      # MANDATORY <INT>
+      worker_count: 2
+  batch:
+    batch_1:
+      # MANDATORY <INT>
+      unit_count: 2
+      # MANDATORY <INT>
+      workers_per_unit: 1
+
+
+
+mapping:
+  static:
+    default:
+      # MANDATORY <STRING>
+      default: static_1
+  batch:
+    default:
+      # MANDATORY <STRING>
+      default: batch_1

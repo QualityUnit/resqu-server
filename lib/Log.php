@@ -10,6 +10,7 @@ use Resque\Config\LogConfig;
 use Resque\Libs\Psr\Log\AbstractLogger;
 use Resque\Libs\Psr\Log\LoggerInterface;
 use Resque\Log\FileHandler;
+use Resque\Log\StreamHandler;
 
 class Log {
 
@@ -87,7 +88,8 @@ class Log {
             $config->getContextPrefix()
         );
 
-        $handler = new FileHandler($config->getPath(), $config->getLevel());
+        //$handler = new FileHandler($config->getPath(), $config->getLevel());
+        $handler = new StreamHandler($config->getLevel());
         $handler->setFormatter($formatter);
 
         $logger = new Logger('main');
