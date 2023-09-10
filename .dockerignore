@@ -1,0 +1,12 @@
+.*
+devops
+gradle
+resources
+test*
+build.gradle
+dependencies.txt
+gradlew*
+LICENSE
+README.md
+settings.gradle
+!devops/containers/app/entrypoint.sh
