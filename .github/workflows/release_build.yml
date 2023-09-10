@@ -5,7 +5,7 @@ on:
     tags:
       - '[0-9]+.[0-9]+.[0-9]+'
 jobs:
-  build-and-deploy:
+  build-zip:
     runs-on: ubuntu-latest
     timeout-minutes: 80
     steps:
@@ -28,3 +28,32 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: "./build/*.zip"
+  build-Docker:
+    runs-on: ubuntu-latest
+    steps:
+      - id: meta
+        name: "Create image meta"
+        shell: bash
+        run: |
+          echo "image_tag=${GITHUB_REF_NAME##*/}" >> $GITHUB_OUTPUT
+          echo "image_repository=e7c0y4g3/la-resqu-app" >> $GITHUB_OUTPUT
+          echo "commit_short_sha=${GITHUB_SHA::8}" >> $GITHUB_OUTPUT
+      - uses: actions/checkout@v3
+      - name: configure aws credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: arn:aws:iam::841209751833:role/qla-shared-infra-ecr-public-github-actions
+          aws-region: us-east-1
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+        with:
+          registry-type: public
+      - name: Build and push
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: devops/containers/app/Dockerfile
+          target: prod
+          push: true
+          tags: ${{ steps.login-ecr.outputs.registry }}/${{ steps.meta.outputs.image_repository }}:${{ steps.meta.outputs.image_tag }}
