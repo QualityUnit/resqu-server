@@ -30,8 +30,8 @@ class FileHandler extends AbstractProcessingHandler {
     }
 
     private function createDir() {
-        // Do not try to create dir if it has already been tried.
-        if ($this->dirCreated) {
+        // Do not try to create dir if it has already been tried or it uses some other protocoll like `php://stdout.
+        if ($this->dirCreated || strpos($this->url, ':/') !== false) {
             return;
         }
 

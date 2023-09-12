@@ -88,8 +88,7 @@ class Log {
             $config->getContextPrefix()
         );
 
-        //$handler = new FileHandler($config->getPath(), $config->getLevel());
-        $handler = new StreamHandler($config->getLevel());
+        $handler = new FileHandler($config->getPath(), $config->getLevel());
         $handler->setFormatter($formatter);
 
         $logger = new Logger('main');
