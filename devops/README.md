@@ -1,6 +1,0 @@
-# 
-
-```
-docker compose 
-
-```
