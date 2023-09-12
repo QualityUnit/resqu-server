@@ -17,14 +17,6 @@ services:
       - ./deploy/containers/app/config/usr--local--etc--php--conf.d--zzz-env.ini:/usr/local/etc/php/conf.d/zzz-env.ini:ro
     environment:
       # DEV
-      ELASTIC_APM_ENABLED: 1
-      ELASTIC_APM_SERVER_URL: http://idp-elastic-apm-server:8200
-      ELASTIC_APM_ENVIRONMENT: dev-local
-      ELASTIC_APM_SERVICE_NODE_NAME: local
-      ELASTIC_APM_SERVICE_NAME: resque-app
-      #ELASTIC_APM_SERVICE_VERSION: 0.1
-      ELASTIC_APM_LOG_LEVEL: WARNING
-
       PHP_IDE_CONFIG: "serverName=resque.la.localhost"
       #XDEBUG_CONFIG: "mode=debug client_host=host.docker.internal start_with_request=yes log_level=7"
     extra_hosts:

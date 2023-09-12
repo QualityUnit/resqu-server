@@ -52,11 +52,13 @@ RUN composer install --no-dev --no-interaction --no-progress --no-scripts --opti
 FROM prod-runtime AS prod
 
 COPY --from=prod-builder /app-src /app
+ENV CONFIG=/app-config.yml
 
+COPY ./resources/config.yml $CONFIG
 WORKDIR /app
 USER app
 COPY ./devops/containers/app/entrypoint.sh /entrypoint.sh
-CMD [ "php", "./scripts/startManagers.php", "/app-config.yml" ]
+CMD [ "/entrypoint.sh" ]
 
 # ==========================================
 # DEVELOMENT
@@ -67,12 +69,6 @@ RUN pecl install \
     xdebug
 RUN docker-php-ext-enable \
     xdebug
-
-ARG APM_AGENT_VERSION=1.9.1
-ENV APM_INSTALL_DEB_FILE=/tmp/apm-agent-php_${APM_AGENT_VERSION}.deb
-RUN curl -L -o ${APM_INSTALL_DEB_FILE} -v https://github.com/elastic/apm-agent-php/releases/download/v${APM_AGENT_VERSION}/apm-agent-php_${APM_AGENT_VERSION}_all.deb \
-    && dpkg -i ${APM_INSTALL_DEB_FILE} \
-    && rm ${APM_INSTALL_DEB_FILE}
 
 WORKDIR /app
 USER app

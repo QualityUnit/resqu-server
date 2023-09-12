@@ -10,3 +10,4 @@ LICENSE
 README.md
 settings.gradle
 !devops/containers/app/entrypoint.sh
+!resources/config.yml
