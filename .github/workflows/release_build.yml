@@ -51,11 +51,11 @@ jobs:
         name: "Create image meta"
         uses: docker/metadata-action@v4
         with:
-          images: ${{ steps.login-ecr.outputs.registry }}/${{ steps.values.outputs.image_repository }}
+          images: ${{ steps.login-ecr.outputs.registry }}e7c0y4g3/resqu-app{{ steps.values.outputs.image_repository }}
           tags: |
             type=match,pattern=(.*)\/([^/]*)$,group=2
             type=ref,event=branch,priority=600
-            type=ref,event=branch,suffix=-{{sha}}${{ inputs.image_tag_suffix }},priority=601
+            type=ref,event=branch,suffix=-{{sha}},priority=601
             type=sha,enable=true,prefix=sha-,format=short
       - name: Validate tags
         if: ${{ steps.meta.outputs.tags == '' }}
