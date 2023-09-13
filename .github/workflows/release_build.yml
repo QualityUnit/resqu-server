@@ -2,9 +2,11 @@ name: Build release & deploy
 
 on:
   push:
+    branches:
+      - martincivan/feat-containerization
     tags:
       - '[0-9]+.[0-9]+.[0-9]+.*'
-  repository_dispatch:
+  workflow_dispatch:
 jobs:
   build-zip:
     runs-on: ubuntu-latest
@@ -32,14 +34,6 @@ jobs:
   build-Docker:
     runs-on: ubuntu-latest
     steps:
-      - id: meta
-        name: "Create image meta"
-        shell: bash
-        run: |
-          echo "image_tag=${GITHUB_REF_NAME##*/}" >> $GITHUB_OUTPUT
-          echo "image_repository=e7c0y4g3/resqu-app" >> $GITHUB_OUTPUT
-          echo "commit_short_sha=${GITHUB_SHA::8}" >> $GITHUB_OUTPUT
-      - uses: actions/checkout@v3
       - name: configure aws credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -50,6 +44,23 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v1
         with:
           registry-type: public
+      - id: meta
+        name: "Create image meta"
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ steps.login-ecr.outputs.registry }}/${{ steps.values.outputs.image_repository }}
+          tags: |
+            type=match,pattern=(.*)\/([^/]*)$,group=2
+            type=ref,event=branch,priority=600
+            type=ref,event=branch,suffix=-{{sha}}${{ inputs.image_tag_suffix }},priority=601
+            type=sha,enable=true,prefix=sha-,format=short
+      - name: Validate tags
+        if: ${{ steps.meta.outputs.tags == '' }}
+        shell: bash
+        run: |
+          echo ::error::No image tags were generated for this build.
+          exit 1
+      - uses: actions/checkout@v3
       - name: Build and push
         uses: docker/build-push-action@v4
         with:
@@ -57,4 +68,4 @@ jobs:
           file: devops/containers/app/Dockerfile
           target: prod
           push: true
-          tags: ${{ steps.login-ecr.outputs.registry }}/${{ steps.meta.outputs.image_repository }}:${{ steps.meta.outputs.image_tag }}
+          tags: ${{ steps.meta.outputs.tags }}
