@@ -10,6 +10,7 @@ use Resque\Config\LogConfig;
 use Resque\Libs\Psr\Log\AbstractLogger;
 use Resque\Libs\Psr\Log\LoggerInterface;
 use Resque\Log\FileHandler;
+use Resque\Log\StreamHandler;
 
 class Log {
 

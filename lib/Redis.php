@@ -418,7 +418,11 @@ class Redis {
         ]);
         $this->close();
 
-        usleep((int)($wait * 1000000));
+        // Dispatch in regular intervals, so POSIX signals can be handled by the app on redis connection problems.
+        for ($i = 0; $i < $wait; $i++) {
+            SignalHandler::dispatch();
+            usleep((int)1000000);
+        }
 
         try {
             return $this->driver->__call($name, $args);

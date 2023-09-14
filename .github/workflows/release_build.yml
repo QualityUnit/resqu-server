@@ -3,9 +3,13 @@ name: Build release & deploy
 on:
   push:
     tags:
-      - '[0-9]+.[0-9]+.[0-9]+'
+      - '[0-9]+.[0-9]+.[0-9]+.*'
+  workflow_dispatch:
+permissions:
+  id-token: write   # This is required for requesting the JWT
+  contents: read    # This is required for actions/checkout
 jobs:
-  build-and-deploy:
+  build-zip:
     runs-on: ubuntu-latest
     timeout-minutes: 80
     steps:
@@ -28,3 +32,41 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: "./build/*.zip"
+  build-Docker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: configure aws credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: arn:aws:iam::841209751833:role/qla-shared-infra-ecr-public-github-actions
+          aws-region: us-east-1
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+        with:
+          registry-type: public
+      - id: meta
+        name: "Create image meta"
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ steps.login-ecr.outputs.registry }}/e7c0y4g3/resqu-app
+          tags: |
+            type=match,pattern=(.*)\/([^/]*)$,group=2
+            type=ref,event=branch,priority=600
+            type=ref,event=branch,suffix=-{{sha}},priority=601
+            type=sha,enable=true,prefix=sha-,format=short
+      - name: Validate tags
+        if: ${{ steps.meta.outputs.tags == '' }}
+        shell: bash
+        run: |
+          echo ::error::No image tags were generated for this build.
+          exit 1
+      - uses: actions/checkout@v3
+      - name: Build and push
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: devops/containers/app/Dockerfile
+          target: prod
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
