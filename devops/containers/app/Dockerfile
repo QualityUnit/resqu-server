@@ -18,15 +18,12 @@ RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
 
 #COPY rootfs /
 
-#RUN mkdir /app-ephemeral && chown app:app /app-ephemeral
-
 # ==========================================
 # BUILDER
 # ==========================================
 FROM prod-runtime AS builder
 ARG BUILDER_UID=1000
 ARG BUILDER_GID=1000
-#VOLUME /home/builder/.gradle
 
 RUN set -o errexit -o nounset \
     && groupadd --system --gid ${BUILDER_GID} builder \
@@ -35,7 +32,6 @@ RUN set -o errexit -o nounset \
 RUN apt-get update && apt-get install -y  \
     curl \
     git \
-    openjdk-17-jdk-headless \
     unzip
 
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
@@ -52,13 +48,10 @@ RUN composer install --no-dev --no-interaction --no-progress --no-scripts --opti
 FROM prod-runtime AS prod
 
 COPY --from=prod-builder /app-src /app
-ENV CONFIG=/app-config.yml
 
-COPY ./resources/config.yml $CONFIG
 WORKDIR /app
 USER app
-COPY ./devops/containers/app/entrypoint.sh /entrypoint.sh
-CMD [ "/entrypoint.sh" ]
+CMD ["php", "scripts/startManagers.php", "/app-config/config.yml"]
 
 # ==========================================
 # DEVELOMENT

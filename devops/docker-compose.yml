@@ -7,11 +7,11 @@ services:
       dockerfile: devops/containers/app/Dockerfile
       target: dev
     # https://github.com/QualityUnit/QuCloud/blob/master/QuSalt/salt/roots/php-resque/conf/resqu.service
-    command: php scripts/startManagers.php /app-config.yml
+    command: php scripts/startManagers.php /app-config/config.yml
     volumes:
       - ../:/app:ro
       # App config
-      - ./deploy/containers/app/config/app-config.yml:/app-config.yml:ro
+      - ./deploy/containers/app/config/app-config:/app-config:ro
       - ./deploy/containers/app/secrets/app-secrets:/app-secrets:ro
       # PHP
       - ./deploy/containers/app/config/usr--local--etc--php--conf.d--zzz-env.ini:/usr/local/etc/php/conf.d/zzz-env.ini:ro
@@ -29,10 +29,9 @@ services:
       dockerfile: devops/containers/app/Dockerfile
       target: prod
     # https://github.com/QualityUnit/QuCloud/blob/master/QuSalt/salt/roots/php-resque/conf/resqu.service
-    command: php scripts/startManagers.php /app-config.yml
     volumes:
       # App config
-      - ./deploy/containers/app/config/app-config.yml:/app-config.yml:ro
+      - ./deploy/containers/app/config/app-config:/app-config:ro
       - ./deploy/containers/app/secrets/app-secrets:/app-secrets:ro
       # PHP
       - ./deploy/containers/app/config/usr--local--etc--php--conf.d--zzz-env.ini:/usr/local/etc/php/conf.d/zzz-env.ini:ro
