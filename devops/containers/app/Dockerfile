@@ -7,7 +7,9 @@ RUN set -o errexit -o nounset \
     && useradd --system --uid ${APP_UID} --gid app --no-create-home app
 
 RUN apt update && apt install -y  \
+    htop \
     libxml2-dev \
+    procps \
  && rm -rf /var/lib/apt/lists/*
 
 # PHP
