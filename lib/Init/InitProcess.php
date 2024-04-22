@@ -24,7 +24,6 @@ class InitProcess {
      */
     private array $maintainers = [];
     private bool $stopping = false;
-    private bool $reloaded = false;
 
     public function maintain(): void {
         Process::setTitle('maintaining');
@@ -53,7 +52,6 @@ class InitProcess {
         Log::initialize(GlobalConfig::getInstance()->getLogConfig());
         Log::setPrefix('init-process');
         $this->initializeMaintainers();
-        $this->reloaded = true;
 
         $this->signalProcesses(SIGHUP, 'HUP');
     }
