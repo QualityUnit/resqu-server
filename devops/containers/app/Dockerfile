@@ -16,6 +16,12 @@ RUN apt update && apt install -y  \
 RUN docker-php-ext-install -j$(nproc) \
     pcntl
 
+RUN pecl install -o -f \
+    redis \
+ && pecl clear-cache \
+ && docker-php-ext-enable \
+    redis
+
 RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
 
 #COPY rootfs /

@@ -11,6 +11,10 @@ use Resque\SignalHandler;
 
 class SchedulerMaintainer implements IProcessMaintainer {
 
+    public function getHumanReadableName() {
+        return 'Scheduler';
+    }
+
     /**
      * @return SchedulerImage[]
      * @throws \Resque\RedisError
@@ -36,6 +40,15 @@ class SchedulerMaintainer implements IProcessMaintainer {
         $schedulerIsAlive = $this->cleanupSchedulers();
         if (!$schedulerIsAlive) {
             $this->forkScheduler();
+        }
+    }
+
+    public function recover() {
+        foreach ($this->getLocalProcesses() as $image) {
+            Log::notice('Cleaning up past scheduler.', [
+                'process_id' => $image->getId()
+            ]);
+            $image->unregister();
         }
     }
 

@@ -35,6 +35,9 @@ class StaticPoolMaintainer implements IProcessMaintainer {
         $this->pool = GlobalConfig::getInstance()->getStaticPoolConfig()->getPool($poolName);
     }
 
+    public function getHumanReadableName() {
+        return 'Pool ' . $this->pool->getName();
+    }
 
     /**
      * @return WorkerImage[]
@@ -67,6 +70,16 @@ class StaticPoolMaintainer implements IProcessMaintainer {
 
         $jobsInQueue = Resque::redis()->lLen(Key::staticPoolQueue($this->pool->getName()));
         PoolStats::getInstance()->reportQueue($this->pool->getName(), $jobsInQueue);
+    }
+
+    public function recover() {
+        foreach ($this->getLocalProcesses() as $image) {
+            Log::notice('Cleaning up past worker.', [
+                'process_id' => $image->getId()
+            ]);
+            $image->unregister();
+            WorkerMaintenance::clearBuffer($this->pool, $image);
+        }
     }
 
     /**

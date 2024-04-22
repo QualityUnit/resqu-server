@@ -66,7 +66,7 @@ abstract class AbstractProcess implements IStandaloneProcess {
 
     final public function shutDown(): void {
         $this->isShutDown = true;
-        Log::info('Shutting down');
+        Log::notice('Shutting down');
     }
 
     final public function unregister(): void {

@@ -58,6 +58,9 @@ LUA;
         $this->unitCount = $this->pool->getUnitCount();
     }
 
+    public function getHumanReadableName() {
+        return 'Pool ' . $this->pool->getName();
+    }
 
     /**
      * @return WorkerImage[]
@@ -86,6 +89,16 @@ LUA;
         }
 
         $this->cleanupUnitQueues();
+    }
+
+    public function recover() {
+        foreach ($this->getLocalProcesses() as $image) {
+            Log::notice('Cleaning up past worker.', [
+                'process_id' => $image->getId()
+            ]);
+            $image->unregister();
+            WorkerMaintenance::clearBuffer($this->pool, $image);
+        }
     }
 
     /**

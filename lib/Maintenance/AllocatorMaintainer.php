@@ -19,6 +19,10 @@ class AllocatorMaintainer implements IProcessMaintainer {
     const PREFIX_BATCH = 'batch-';
     const PREFIX_JOB = 'job-';
 
+    public function getHumanReadableName() {
+        return 'Allocator';
+    }
+
     /**
      * @return AllocatorImage[]
      * @throws \Resque\RedisError
@@ -43,7 +47,7 @@ class AllocatorMaintainer implements IProcessMaintainer {
         $jobLimit = GlobalConfig::getInstance()->getAllocatorConfig()->getJobCount();
         $batchLimit = GlobalConfig::getInstance()->getAllocatorConfig()->getBatchCount();
 
-        list($jobAlive, $batchAlive) = $this->cleanupAllocators($jobLimit, $batchLimit);
+        [$jobAlive, $batchAlive] = $this->cleanupAllocators($jobLimit, $batchLimit);
 
         for ($i = $jobAlive; $i < $jobLimit; $i++) {
             $this->forkAllocator(self::PREFIX_JOB);
@@ -55,6 +59,15 @@ class AllocatorMaintainer implements IProcessMaintainer {
 
         AllocatorStats::getInstance()->reportStaticQueue(Resque::redis()->lLen(Key::unassigned()));
         AllocatorStats::getInstance()->reportBatchQueue(Resque::redis()->lLen(Key::committedBatchList()));
+    }
+
+    public function recover() {
+        foreach ($this->getLocalProcesses() as $image) {
+            Log::notice('Cleaning up past allocator.', [
+                'process_id' => $image->getId()
+            ]);
+            $image->unregister();
+        }
     }
 
     /**
