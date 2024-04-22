@@ -88,6 +88,16 @@ LUA;
         $this->cleanupUnitQueues();
     }
 
+    public function recover() {
+        foreach ($this->getLocalProcesses() as $image) {
+            Log::notice('Cleaning up past worker.', [
+                'process_id' => $image->getId()
+            ]);
+            $image->unregister();
+            WorkerMaintenance::clearBuffer($this->pool, $image);
+        }
+    }
+
     /**
      * @throws \Resque\RedisError
      */

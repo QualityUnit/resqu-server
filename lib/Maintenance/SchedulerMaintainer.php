@@ -39,6 +39,15 @@ class SchedulerMaintainer implements IProcessMaintainer {
         }
     }
 
+    public function recover() {
+        foreach ($this->getLocalProcesses() as $image) {
+            Log::notice('Cleaning up past scheduler.', [
+                'process_id' => $image->getId()
+            ]);
+            $image->unregister();
+        }
+    }
+
     /**
      * Checks all scheduler processes and keeps at most one alive.
      *

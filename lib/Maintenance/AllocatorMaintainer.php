@@ -57,6 +57,15 @@ class AllocatorMaintainer implements IProcessMaintainer {
         AllocatorStats::getInstance()->reportBatchQueue(Resque::redis()->lLen(Key::committedBatchList()));
     }
 
+    public function recover() {
+        foreach ($this->getLocalProcesses() as $image) {
+            Log::notice('Cleaning up past allocator.', [
+                'process_id' => $image->getId()
+            ]);
+            $image->unregister();
+        }
+    }
+
     /**
      * Checks all scheduler processes and keeps at most one alive.
      *

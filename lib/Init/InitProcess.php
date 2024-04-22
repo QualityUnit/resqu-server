@@ -7,6 +7,7 @@ namespace Resque\Init;
 use ReflectionClass;
 use Resque\Config\ConfigException;
 use Resque\Config\GlobalConfig;
+use Resque\Key;
 use Resque\Log;
 use Resque\Maintenance\AllocatorMaintainer;
 use Resque\Maintenance\BatchPoolMaintainer;
@@ -24,24 +25,29 @@ class InitProcess {
      */
     private array $maintainers = [];
     private bool $stopping = false;
+    private ?string $nodeIdentifier;
 
     public function maintain(): void {
         Process::setTitle('maintaining');
         while (true) {
             sleep(5);
-            SignalHandler::dispatch();
+            $this->checkForTermination();
             if ($this->stopping) {
                 break;
             }
-            $this->recover();
+            foreach ($this->maintainers as $maintainer) {
+                $className = (new ReflectionClass($maintainer))->getShortName();
+                Log::info("=== Maintenance started ($className)");
+                $maintainer->maintain();
+            }
         }
     }
 
     public function recover(): void {
         foreach ($this->maintainers as $maintainer) {
             $className = (new ReflectionClass($maintainer))->getShortName();
-            Log::info("=== Maintenance started ($className)");
-            $maintainer->maintain();
+            Log::info("=== Recovery started ($className)");
+            $maintainer->recover();
         }
     }
 
@@ -74,12 +80,27 @@ class InitProcess {
         $this->recover();
     }
 
+    private function checkForTermination() {
+        if (($identifier = Resque::redis()->get(Key::nodeIdentifier())) !== $this->nodeIdentifier) {
+            Log::notice('Detected newer root process with identifier ' . $identifier);
+            $this->shutdown();
+            return;
+        }
+
+        SignalHandler::dispatch();
+    }
+
     private function initialize(): void {
         Resque::setBackend(GlobalConfig::getInstance()->getBackend());
 
         StatsD::initialize(GlobalConfig::getInstance()->getStatsConfig());
         Log::initialize(GlobalConfig::getInstance()->getLogConfig());
         Log::setPrefix('init-process');
+
+        $this->nodeIdentifier = md5(GlobalConfig::getInstance()->getNodeId() . random_int(PHP_INT_MIN, PHP_INT_MAX));
+        Resque::redis()->set(Key::nodeIdentifier(), $this->nodeIdentifier);
+        Log::notice('Starting root process with identifier ' . $this->nodeIdentifier);
+
         $this->initializeMaintainers();
 
         $this->registerSigHandlers();
@@ -141,7 +162,7 @@ class InitProcess {
         }
 
         while ($iMax = count($children) > 0) {
-            $sleepMultiplier = 30;
+            $sleepMultiplier = 30; // wait longer until we detect a process
             for ($i = 0; $i < $iMax; $i++) {
                 $pid = $children[$i];
                 $result = pcntl_waitpid($pid, $status, WNOHANG);
@@ -154,7 +175,7 @@ class InitProcess {
                 }
             }
             $children = array_values(array_filter($children));
-            usleep(10000 * $sleepMultiplier); // wait longer until we detect a process
+            usleep(10000 * $sleepMultiplier);
         }
     }
 }

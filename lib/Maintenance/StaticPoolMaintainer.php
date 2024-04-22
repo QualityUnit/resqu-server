@@ -69,6 +69,16 @@ class StaticPoolMaintainer implements IProcessMaintainer {
         PoolStats::getInstance()->reportQueue($this->pool->getName(), $jobsInQueue);
     }
 
+    public function recover() {
+        foreach ($this->getLocalProcesses() as $image) {
+            Log::notice('Cleaning up past worker.', [
+                'process_id' => $image->getId()
+            ]);
+            $image->unregister();
+            WorkerMaintenance::clearBuffer($this->pool, $image);
+        }
+    }
+
     /**
      * @param int $workerLimit
      *

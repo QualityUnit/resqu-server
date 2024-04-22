@@ -85,6 +85,13 @@ class Key {
     }
 
     /**
+     * @return string
+     */
+    public static function nodeIdentifier() {
+        return self::of('node_identifier', GlobalConfig::getInstance()->getNodeId());
+    }
+
+    /**
      * @param string $id
      *
      * @return string
