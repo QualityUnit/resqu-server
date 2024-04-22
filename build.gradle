@@ -1,4 +1,4 @@
-project.version '5.6.8'
+project.version '5.7.0'
 
 def distributionDir = file('dist')
 buildDir = file('build')
