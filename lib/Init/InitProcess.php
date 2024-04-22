@@ -65,6 +65,8 @@ class InitProcess {
         $this->stopping = true;
 
         $this->signalProcesses(SIGTERM, 'TERM');
+
+        Log::notice('Main process shutting down');
     }
 
     public function start(): void {
@@ -131,12 +133,30 @@ class InitProcess {
     }
 
     private function signalProcesses($signal, $signalName): void {
+        $children = [];
         foreach ($this->maintainers as $maintainer) {
             foreach ($maintainer->getLocalProcesses() as $localProcess) {
                 Log::debug("Signalling $signalName to {$localProcess->getId()}");
                 posix_kill($localProcess->getPid(), $signal);
+                $children[] = $localProcess->getPid();
             }
         }
 
+        while ($iMax = count($children) > 0) {
+            $sleepMultiplier = 30;
+            for ($i = 0; $i < $iMax; $i++) {
+                $pid = $children[$i];
+                $result = pcntl_waitpid($pid, $status, WNOHANG);
+                if ($result !== 0) {
+                    Log::notice("Process $pid exited", [
+                        'status' => $status
+                    ]);
+                    $children[$i] = null;
+                    $sleepMultiplier = 1;
+                }
+            }
+            $children = array_values(array_filter($children));
+            usleep(10000 * $sleepMultiplier); // wait longer until we detect a process
+        }
     }
 }
