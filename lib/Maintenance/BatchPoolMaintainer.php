@@ -58,6 +58,9 @@ LUA;
         $this->unitCount = $this->pool->getUnitCount();
     }
 
+    public function getHumanReadableName() {
+        return 'Pool ' . $this->pool->getName();
+    }
 
     /**
      * @return WorkerImage[]

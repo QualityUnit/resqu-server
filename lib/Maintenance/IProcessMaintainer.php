@@ -7,6 +7,11 @@ use Resque\Process\IProcessImage;
 interface IProcessMaintainer {
 
     /**
+     * @return string
+     */
+    public function getHumanReadableName();
+
+    /**
      * @return IProcessImage[]
      */
     public function getLocalProcesses();

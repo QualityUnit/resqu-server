@@ -19,6 +19,10 @@ class AllocatorMaintainer implements IProcessMaintainer {
     const PREFIX_BATCH = 'batch-';
     const PREFIX_JOB = 'job-';
 
+    public function getHumanReadableName() {
+        return 'Allocator';
+    }
+
     /**
      * @return AllocatorImage[]
      * @throws \Resque\RedisError
@@ -43,7 +47,7 @@ class AllocatorMaintainer implements IProcessMaintainer {
         $jobLimit = GlobalConfig::getInstance()->getAllocatorConfig()->getJobCount();
         $batchLimit = GlobalConfig::getInstance()->getAllocatorConfig()->getBatchCount();
 
-        list($jobAlive, $batchAlive) = $this->cleanupAllocators($jobLimit, $batchLimit);
+        [$jobAlive, $batchAlive] = $this->cleanupAllocators($jobLimit, $batchLimit);
 
         for ($i = $jobAlive; $i < $jobLimit; $i++) {
             $this->forkAllocator(self::PREFIX_JOB);

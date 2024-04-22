@@ -4,7 +4,6 @@
 namespace Resque\Init;
 
 
-use ReflectionClass;
 use Resque\Config\ConfigException;
 use Resque\Config\GlobalConfig;
 use Resque\Key;
@@ -36,8 +35,7 @@ class InitProcess {
                 break;
             }
             foreach ($this->maintainers as $maintainer) {
-                $className = (new ReflectionClass($maintainer))->getShortName();
-                Log::info("=== Maintenance started ($className)");
+                Log::info("=== Maintenance started ({$maintainer->getHumanReadableName()})");
                 $maintainer->maintain();
             }
         }
@@ -45,8 +43,7 @@ class InitProcess {
 
     public function recover(): void {
         foreach ($this->maintainers as $maintainer) {
-            $className = (new ReflectionClass($maintainer))->getShortName();
-            Log::info("=== Recovery started ($className)");
+            Log::info("=== Recovery started ({$maintainer->getHumanReadableName()})");
             $maintainer->recover();
         }
     }

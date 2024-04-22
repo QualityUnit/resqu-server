@@ -35,6 +35,9 @@ class StaticPoolMaintainer implements IProcessMaintainer {
         $this->pool = GlobalConfig::getInstance()->getStaticPoolConfig()->getPool($poolName);
     }
 
+    public function getHumanReadableName() {
+        return 'Pool ' . $this->pool->getName();
+    }
 
     /**
      * @return WorkerImage[]

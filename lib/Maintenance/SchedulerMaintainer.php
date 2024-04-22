@@ -11,6 +11,10 @@ use Resque\SignalHandler;
 
 class SchedulerMaintainer implements IProcessMaintainer {
 
+    public function getHumanReadableName() {
+        return 'Scheduler';
+    }
+
     /**
      * @return SchedulerImage[]
      * @throws \Resque\RedisError
