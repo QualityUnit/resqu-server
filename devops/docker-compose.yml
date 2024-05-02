@@ -16,6 +16,7 @@ services:
       # PHP
       - ./deploy/containers/app/config/usr--local--etc--php--conf.d--zzz-env.ini:/usr/local/etc/php/conf.d/zzz-env.ini:ro
     environment:
+      RESQU_NODE_ID: 'dev-local'
       # DEV
       PHP_IDE_CONFIG: "serverName=resque.la.localhost"
       #XDEBUG_CONFIG: "mode=debug client_host=host.docker.internal start_with_request=yes log_level=7"
@@ -29,6 +30,8 @@ services:
       dockerfile: devops/containers/app/Dockerfile
       target: prod
     # https://github.com/QualityUnit/QuCloud/blob/master/QuSalt/salt/roots/php-resque/conf/resqu.service
+    environment:
+      RESQU_NODE_ID: 'dev-local'
     volumes:
       # App config
       - ./deploy/containers/app/config/app-config:/app-config:ro
