@@ -1,5 +1,5 @@
 # MANDATORY <STRING> instance id /^[a-zA-Z0-9_]+$/ (must be unique for each resque instance)
-node_id: "dev_local"
+#node_id: "dev_local"
 
 log:
   # default = notice

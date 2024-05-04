@@ -78,8 +78,19 @@ class GlobalConfig {
             throw new \RuntimeException('Config file failed to parse.');
         }
 
+        if (empty($data['node_id'])) {
+          // get node_id from environment variable
+          // this is used in kubernetes deployments where statefulset pod name is used.
+          // https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#pod-name-label
+          $nodeId = getenv('RESQU_NODE_ID');
+          if (empty($nodeId)) {
+            throw new \RuntimeException('Config key node_id or environment variable RESQUE_NODE_ID must be specified.');
+          }
+          $data['node_id'] = str_replace('-', '_', $nodeId);
+        }
+
         if (!isset($data['node_id']) || !self::isNodeIdValid($data['node_id'])) {
-            throw new \RuntimeException('Config key node_id invalid or missing.');
+            throw new \RuntimeException('node_id invalid.');
         }
 
         if (!isset($data['pools'])) {
