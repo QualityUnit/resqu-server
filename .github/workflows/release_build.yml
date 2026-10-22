@@ -20,7 +20,7 @@ jobs:
         with:
           java-version: 17
           distribution: 'zulu'
-      - uses: shivammathur/setup-php@2.25.0
+      - uses: shivammathur/setup-php@1fdc5e773bb54b5aa541c73679d6e9acc692d0cd # 2.25.0
         with:
           php-version: '8.0'
           coverage: none
@@ -29,25 +29,25 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew dist
       - name: Github Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844 # v0.1.15
         with:
           files: "./build/*.zip"
   build-Docker:
     runs-on: ubuntu-latest
     steps:
       - name: configure aws credentials
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@5fd3084fc36e372ff1fff382a39b10d03659f355 # v2.2.0
         with:
           role-to-assume: arn:aws:iam::841209751833:role/qla-shared-infra-ecr-public-github-actions
           aws-region: us-east-1
       - name: Login to Amazon ECR
         id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
+        uses: aws-actions/amazon-ecr-login@5a88a04c91d5c6f97aae0d9be790e64d9b1d47b7 # v1.7.1
         with:
           registry-type: public
       - id: meta
         name: "Create image meta"
-        uses: docker/metadata-action@v4
+        uses: docker/metadata-action@818d4b7b91585d195f67373fd9cb0332e31a7175 # v4.6.0
         with:
           images: ${{ steps.login-ecr.outputs.registry }}/e7c0y4g3/resqu-app
           tags: |
@@ -63,7 +63,7 @@ jobs:
           exit 1
       - uses: actions/checkout@v3
       - name: Build and push
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@0a97817b6ade9f46837855d676c4cca3a2471fc9 # v4.2.1
         with:
           context: .
           file: devops/containers/app/Dockerfile
