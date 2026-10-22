@@ -1,4 +1,4 @@
-FROM php:8.2-cli AS prod-runtime
+FROM php:8.2.35-cli-bookworm AS prod-runtime
 
 ARG APP_UID=3000
 ARG APP_GID=3000
