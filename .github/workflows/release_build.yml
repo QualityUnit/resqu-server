@@ -3,7 +3,7 @@ name: Build release & deploy
 on:
   push:
     tags:
-      - '[0-9]+.[0-9]+.[0-9]+.*'
+      - '[0-9]+.[0-9]+.[0-9]+*'
   workflow_dispatch:
 permissions:
   id-token: write   # This is required for requesting the JWT
@@ -11,6 +11,8 @@ permissions:
 jobs:
   build-zip:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     timeout-minutes: 80
     steps:
       - name: Checkout
