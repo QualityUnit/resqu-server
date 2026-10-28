@@ -11,6 +11,8 @@ permissions:
 jobs:
   build-zip:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     timeout-minutes: 80
     steps:
       - name: Checkout
